@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slicer - AI-Powered 3D Printing Requests</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🖨️ Slicer</h1>
+            <p class="tagline">AI-Powered 3D Printing Request Platform</p>
+        </header>
+
+        <main>
+            <section class="hero">
+                <h2>Request Your 3D Model</h2>
+                <p>Describe your model using text or voice commands, and we'll handle the rest!</p>
+            </section>
+
+            <section class="input-section">
+                <div class="tabs">
+                    <button class="tab-button active" data-tab="text">✍️ Text Prompt</button>
+                    <button class="tab-button" data-tab="voice">🎤 Voice Command</button>
+                </div>
+
+                <!-- Text Prompt Tab -->
+                <div id="text-tab" class="tab-content active">
+                    <div class="prompt-area">
+                        <label for="model-prompt">Describe your 3D model:</label>
+                        <textarea 
+                            id="model-prompt" 
+                            rows="6" 
+                            placeholder="Example: I need a custom phone stand that can hold my device vertically and horizontally. It should be 15cm tall with a slot width of 1cm..."
+                        ></textarea>
+                        <button id="process-prompt-btn" class="primary-btn">Generate Specifications</button>
+                    </div>
+                </div>
+
+                <!-- Voice Command Tab -->
+                <div id="voice-tab" class="tab-content">
+                    <div class="voice-area">
+                        <p class="voice-instruction">Click the microphone to start recording your request</p>
+                        <button id="voice-record-btn" class="voice-btn">
+                            <span class="mic-icon">🎤</span>
+                            <span class="btn-text">Start Recording</span>
+                        </button>
+                        <div id="voice-status" class="status-message"></div>
+                        <div id="transcription-result" class="transcription-box"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- AI Response Section -->
+            <section id="ai-response" class="response-section" style="display: none;">
+                <h3>📋 Model Specifications</h3>
+                <div id="response-content" class="response-content"></div>
+            </section>
+
+            <!-- Request Form Section -->
+            <section class="request-form">
+                <h3>Submit Print Request</h3>
+                <form id="print-request-form">
+                    <div class="form-group">
+                        <label for="model-description">Model Description:</label>
+                        <textarea id="model-description" name="modelDescription" rows="4" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="specifications">Specifications (size, material, etc.):</label>
+                        <textarea id="specifications" name="specifications" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contact-name">Your Name:</label>
+                        <input type="text" id="contact-name" name="contactName" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contact-email">Email:</label>
+                        <input type="email" id="contact-email" name="contactEmail" required>
+                    </div>
+
+                    <button type="submit" class="primary-btn">Submit Request</button>
+                </form>
+            </section>
+
+            <!-- Request Status -->
+            <section id="request-status" class="status-section" style="display: none;">
+                <div class="success-message">
+                    <h3>✅ Request Submitted Successfully!</h3>
+                    <p id="request-id-display"></p>
+                    <p id="estimated-time"></p>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="resources">
+                <h4>Resources & Documentation</h4>
+                <ul>
+                    <li><a href="docs/api-documentation.md">API Documentation</a></li>
+                    <li><a href="docs/voice-commands-guide.md">Voice Commands Guide</a></li>
+                    <li><a href="docs/ai-prompting-tips.md">AI Prompting Tips</a></li>
+                    <li><a href="docs/3d-printing-basics.md">3D Printing Basics</a></li>
+                    <li><a href="docs/integration-guide.md">Integration Guide</a></li>
+                </ul>
+            </div>
+            <p class="copyright">&copy; 2025 Slicer - AI-Powered 3D Printing Platform</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
