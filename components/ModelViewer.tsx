@@ -2,7 +2,7 @@
 
 import { useRef, useState, Suspense } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, PerspectiveCamera, Environment } from '@react-three/drei';
+import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
 
 interface ModelViewerProps {
@@ -45,9 +45,6 @@ export default function ModelViewer({ modelData, onLoad }: ModelViewerProps) {
           
           {/* Model or default cube */}
           <RotatingCube />
-          
-          {/* Environment */}
-          <Environment preset="studio" />
           
           {/* Grid helper */}
           <gridHelper args={[10, 10]} />
