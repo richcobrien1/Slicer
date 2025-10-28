@@ -1,35 +1,64 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from 'react';
+import ModelGallery from './components/ModelGallery';
+import ModelViewer from './components/ModelViewer';
+import VoiceCustomization from './components/VoiceCustomization';
+import ExportControls from './components/ExportControls';
+import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [selectedModel, setSelectedModel] = useState(null);
+  const [customizationRequests, setCustomizationRequests] = useState([]);
+
+  const handleModelSelect = (model) => {
+    setSelectedModel(model);
+  };
+
+  const handleCustomization = (request) => {
+    setCustomizationRequests([...customizationRequests, {
+      text: request,
+      timestamp: new Date().toLocaleTimeString()
+    }]);
+    
+    // In production, this would send to AI API for processing
+    console.log('Customization request:', request);
+    alert(`🤖 AI received: "${request}"\n\nIn production, this would modify the 3D model based on your request.`);
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="app">
+      <header className="app-header">
+        <h1>⚙️ Slicer</h1>
+        <p className="tagline">Industrial 3D Manufacturing System</p>
+      </header>
+
+      <div className="app-container">
+        <div className="left-panel">
+          <ModelGallery onSelectModel={handleModelSelect} />
+          
+          {customizationRequests.length > 0 && (
+            <div className="customization-log">
+              <h3>📝 History</h3>
+              {customizationRequests.slice(-3).map((req, index) => (
+                <div key={index} className="log-item">
+                  <span className="log-time">{req.timestamp}</span>
+                  <span className="log-text">{req.text}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="middle-panel">
+          <ModelViewer selectedModel={selectedModel} />
+        </div>
+
+        <div className="right-panel">
+          <VoiceCustomization onCustomizationRequest={handleCustomization} />
+          <ExportControls selectedModel={selectedModel} />
+        </div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+export default App;
