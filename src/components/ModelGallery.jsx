@@ -2,20 +2,20 @@ import { useState } from 'react';
 import './ModelGallery.css';
 
 const ModelGallery = ({ onSelectModel }) => {
-  // Kitchen utensil models - in production, these would come from a database/API
+  // Refined jewelry and accessory models - in production, these would come from a database/API
   const models = [
-    { id: 1, name: 'Spoon', thumbnail: 'ü•Ñ', description: 'Table spoon', modelPath: '/models/spoon.glb' },
-    { id: 2, name: 'Fork', thumbnail: 'üç¥', description: 'Dinner fork', modelPath: '/models/fork.glb' },
-    { id: 3, name: 'Knife', thumbnail: 'üî™', description: 'Kitchen knife', modelPath: '/models/knife.glb' },
-    { id: 4, name: 'Spatula', thumbnail: 'üç≥', description: 'Cooking spatula', modelPath: '/models/spatula.glb' },
-    { id: 5, name: 'Whisk', thumbnail: 'ü•£', description: 'Wire whisk', modelPath: '/models/whisk.glb' },
-    { id: 6, name: 'Ladle', thumbnail: 'ü•ò', description: 'Soup ladle', modelPath: '/models/ladle.glb' },
-    { id: 7, name: 'Peeler', thumbnail: 'ÔøΩ', description: 'Vegetable peeler', modelPath: '/models/peeler.glb' },
-    { id: 8, name: 'Tongs', thumbnail: 'ü¶û', description: 'Kitchen tongs', modelPath: '/models/tongs.glb' },
-    { id: 9, name: 'Grater', thumbnail: '‚öôÔ∏è', description: 'Cheese grater', modelPath: '/models/grater.glb' },
-    { id: 10, name: 'Masher', thumbnail: 'ÔøΩ', description: 'Potato masher', modelPath: '/models/masher.glb' },
-    { id: 11, name: 'Turner', thumbnail: 'üçî', description: 'Food turner', modelPath: '/models/turner.glb' },
-    { id: 12, name: 'Strainer', thumbnail: 'üß∫', description: 'Mesh strainer', modelPath: '/models/strainer.glb' },
+    { id: 1, name: 'Ring', thumbnail: 'Ì≤ç', description: 'Diamond ring', modelPath: '/models/ring.glb' },
+    { id: 2, name: 'Watch', thumbnail: '‚åö', description: 'Wrist watch', modelPath: '/models/watch.glb' },
+    { id: 3, name: 'Pendant', thumbnail: 'Ì≥ø', description: 'Heart pendant', modelPath: '/models/pendant.glb' },
+    { id: 4, name: 'Bracelet', thumbnail: 'Ì≥ø', description: 'Chain bracelet', modelPath: '/models/bracelet.glb' },
+    { id: 5, name: 'Earring', thumbnail: 'Ì≤é', description: 'Stud earring', modelPath: '/models/earring.glb' },
+    { id: 6, name: 'Crown', thumbnail: 'Ì±ë', description: 'Royal crown', modelPath: '/models/crown.glb' },
+    { id: 7, name: 'Brooch', thumbnail: 'Ì¥±', description: 'Pin brooch', modelPath: '/models/brooch.glb' },
+    { id: 8, name: 'Locket', thumbnail: 'Ì¥í', description: 'Photo locket', modelPath: '/models/locket.glb' },
+    { id: 9, name: 'Cufflink', thumbnail: 'Ì¥ò', description: 'Dress cufflink', modelPath: '/models/cufflink.glb' },
+    { id: 10, name: 'Necklace', thumbnail: 'Ì≥ø', description: 'Pearl necklace', modelPath: '/models/necklace.glb' },
+    { id: 11, name: 'Anklet', thumbnail: '‚õìÔ∏è', description: 'Chain anklet', modelPath: '/models/anklet.glb' },
+    { id: 12, name: 'Tiara', thumbnail: 'Ì±∏', description: 'Princess tiara', modelPath: '/models/tiara.glb' },
   ];
 
   const [selectedId, setSelectedId] = useState(null);
