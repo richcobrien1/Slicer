@@ -7,65 +7,143 @@ import './ModelViewer.css';
 const Model3D = ({ modelType }) => {
   const meshRef = useRef();
 
-  // Simple geometric shapes - in production, load actual .glb models
+  // Kitchen utensil shapes - simplified representations
   const renderModel = () => {
     switch (modelType) {
-      case 'Cube':
-        return <Box args={[2, 2, 2]} ref={meshRef}>
-          <meshStandardMaterial color="#ffa726" metalness={0.4} roughness={0.4} emissive="#ff9800" emissiveIntensity={0.2} />
-        </Box>;
-      case 'Sphere':
-        return <Sphere args={[1.5, 32, 32]} ref={meshRef}>
-          <meshStandardMaterial color="#ffa726" metalness={0.4} roughness={0.4} emissive="#ff9800" emissiveIntensity={0.2} />
-        </Sphere>;
-      case 'Cylinder':
-        return <Cylinder args={[1, 1, 2, 32]} ref={meshRef}>
-          <meshStandardMaterial color="#ffa726" metalness={0.4} roughness={0.4} emissive="#ff9800" emissiveIntensity={0.2} />
-        </Cylinder>;
-      case 'Cone':
-        return <Cone args={[1, 2, 32]} ref={meshRef}>
-          <meshStandardMaterial color="#ffa726" metalness={0.4} roughness={0.4} emissive="#ff9800" emissiveIntensity={0.2} />
-        </Cone>;
-      case 'Torus':
-        return <Torus args={[1, 0.4, 16, 100]} ref={meshRef}>
-          <meshStandardMaterial color="#ffa726" metalness={0.4} roughness={0.4} emissive="#ff9800" emissiveIntensity={0.2} />
-        </Torus>;
-      case 'Pyramid':
-        return <Cone args={[1.5, 2, 4]} ref={meshRef}>
-          <meshStandardMaterial color="#ffa726" metalness={0.4} roughness={0.4} emissive="#ff9800" emissiveIntensity={0.2} />
-        </Cone>;
-      case 'Tetrahedron':
-        return <mesh ref={meshRef}>
-          <tetrahedronGeometry args={[1.5]} />
-          <meshStandardMaterial color="#ffa726" metalness={0.4} roughness={0.4} emissive="#ff9800" emissiveIntensity={0.2} />
-        </mesh>;
-      case 'Octahedron':
-        return <mesh ref={meshRef}>
-          <octahedronGeometry args={[1.5]} />
-          <meshStandardMaterial color="#ffa726" metalness={0.4} roughness={0.4} emissive="#ff9800" emissiveIntensity={0.2} />
-        </mesh>;
-      case 'Dodecahedron':
-        return <mesh ref={meshRef}>
-          <dodecahedronGeometry args={[1.5]} />
-          <meshStandardMaterial color="#ffa726" metalness={0.4} roughness={0.4} emissive="#ff9800" emissiveIntensity={0.2} />
-        </mesh>;
-      case 'Icosahedron':
-        return <mesh ref={meshRef}>
-          <icosahedronGeometry args={[1.5]} />
-          <meshStandardMaterial color="#ffa726" metalness={0.4} roughness={0.4} emissive="#ff9800" emissiveIntensity={0.2} />
-        </mesh>;
-      case 'Ring':
-        return <mesh ref={meshRef}>
-          <ringGeometry args={[0.8, 1.5, 32]} />
-          <meshStandardMaterial color="#ffa726" metalness={0.4} roughness={0.4} emissive="#ff9800" emissiveIntensity={0.2} side={THREE.DoubleSide} />
-        </mesh>;
-      case 'Capsule':
-        return <mesh ref={meshRef}>
-          <capsuleGeometry args={[0.5, 1.5, 4, 16]} />
-          <meshStandardMaterial color="#ffa726" metalness={0.4} roughness={0.4} emissive="#ff9800" emissiveIntensity={0.2} />
-        </mesh>;
+      case 'Spoon':
+        // Spoon: oval bowl + cylindrical handle
+        return <group ref={meshRef}>
+          <Sphere args={[0.4, 32, 32]} position={[0, 0, 0]} scale={[1, 0.3, 1]}>
+            <meshStandardMaterial color="#ffa726" metalness={0.4} roughness={0.4} emissive="#ff9800" emissiveIntensity={0.2} />
+          </Sphere>
+          <Cylinder args={[0.1, 0.1, 2, 16]} position={[0, 0, -1.2]} rotation={[Math.PI / 2, 0, 0]}>
+            <meshStandardMaterial color="#ffa726" metalness={0.4} roughness={0.4} emissive="#ff9800" emissiveIntensity={0.2} />
+          </Cylinder>
+        </group>;
+      case 'Fork':
+        // Fork: 4 prongs + handle
+        return <group ref={meshRef}>
+          <Cylinder args={[0.08, 0.08, 1.5, 16]} position={[-0.15, 0, 0.5]}>
+            <meshStandardMaterial color="#ffa726" metalness={0.4} roughness={0.4} emissive="#ff9800" emissiveIntensity={0.2} />
+          </Cylinder>
+          <Cylinder args={[0.08, 0.08, 1.5, 16]} position={[-0.05, 0, 0.5]}>
+            <meshStandardMaterial color="#ffa726" metalness={0.4} roughness={0.4} emissive="#ff9800" emissiveIntensity={0.2} />
+          </Cylinder>
+          <Cylinder args={[0.08, 0.08, 1.5, 16]} position={[0.05, 0, 0.5]}>
+            <meshStandardMaterial color="#ffa726" metalness={0.4} roughness={0.4} emissive="#ff9800" emissiveIntensity={0.2} />
+          </Cylinder>
+          <Cylinder args={[0.08, 0.08, 1.5, 16]} position={[0.15, 0, 0.5]}>
+            <meshStandardMaterial color="#ffa726" metalness={0.4} roughness={0.4} emissive="#ff9800" emissiveIntensity={0.2} />
+          </Cylinder>
+          <Cylinder args={[0.12, 0.12, 1.8, 16]} position={[0, 0, -0.9]} rotation={[Math.PI / 2, 0, 0]}>
+            <meshStandardMaterial color="#ffa726" metalness={0.4} roughness={0.4} emissive="#ff9800" emissiveIntensity={0.2} />
+          </Cylinder>
+        </group>;
+      case 'Knife':
+        // Knife: blade + handle
+        return <group ref={meshRef}>
+          <Box args={[0.5, 0.05, 2]} position={[0, 0, 0.5]}>
+            <meshStandardMaterial color="#cccccc" metalness={0.8} roughness={0.2} />
+          </Box>
+          <Cylinder args={[0.15, 0.15, 1.2, 16]} position={[0, 0, -1]} rotation={[Math.PI / 2, 0, 0]}>
+            <meshStandardMaterial color="#8b4513" metalness={0.2} roughness={0.6} />
+          </Cylinder>
+        </group>;
+      case 'Spatula':
+        // Spatula: flat head + handle
+        return <group ref={meshRef}>
+          <Box args={[1, 0.08, 0.8]} position={[0, 0, 0.5]}>
+            <meshStandardMaterial color="#ffa726" metalness={0.4} roughness={0.4} emissive="#ff9800" emissiveIntensity={0.2} />
+          </Box>
+          <Cylinder args={[0.1, 0.1, 1.8, 16]} position={[0, 0, -1]} rotation={[Math.PI / 2, 0, 0]}>
+            <meshStandardMaterial color="#8b4513" metalness={0.2} roughness={0.6} />
+          </Cylinder>
+        </group>;
+      case 'Whisk':
+        // Whisk: loops + handle
+        return <group ref={meshRef}>
+          <Torus args={[0.3, 0.05, 16, 32]} position={[0, 0, 0.3]} rotation={[0, 0, 0]}>
+            <meshStandardMaterial color="#cccccc" metalness={0.7} roughness={0.3} />
+          </Torus>
+          <Torus args={[0.25, 0.05, 16, 32]} position={[0, 0, 0.5]} rotation={[0, 0, 0]}>
+            <meshStandardMaterial color="#cccccc" metalness={0.7} roughness={0.3} />
+          </Torus>
+          <Cylinder args={[0.12, 0.12, 1.5, 16]} position={[0, 0, -0.9]} rotation={[Math.PI / 2, 0, 0]}>
+            <meshStandardMaterial color="#8b4513" metalness={0.2} roughness={0.6} />
+          </Cylinder>
+        </group>;
+      case 'Ladle':
+        // Ladle: bowl + handle
+        return <group ref={meshRef}>
+          <Sphere args={[0.5, 32, 32]} position={[0, 0, 0]} scale={[1, 0.6, 1]}>
+            <meshStandardMaterial color="#ffa726" metalness={0.4} roughness={0.4} emissive="#ff9800" emissiveIntensity={0.2} />
+          </Sphere>
+          <Cylinder args={[0.08, 0.08, 2, 16]} position={[0.4, 0, -0.3]} rotation={[0, 0, Math.PI / 4]}>
+            <meshStandardMaterial color="#8b4513" metalness={0.2} roughness={0.6} />
+          </Cylinder>
+        </group>;
+      case 'Peeler':
+        // Peeler: blade + handle
+        return <group ref={meshRef}>
+          <Box args={[0.4, 0.8, 0.05]} position={[0, 0, 0.3]}>
+            <meshStandardMaterial color="#cccccc" metalness={0.7} roughness={0.3} />
+          </Box>
+          <Cylinder args={[0.12, 0.12, 1.2, 16]} position={[0, 0, -0.7]} rotation={[Math.PI / 2, 0, 0]}>
+            <meshStandardMaterial color="#ff6b6b" metalness={0.3} roughness={0.5} />
+          </Cylinder>
+        </group>;
+      case 'Tongs':
+        // Tongs: two arms
+        return <group ref={meshRef}>
+          <Box args={[0.15, 0.08, 2.5]} position={[0.15, 0, 0]} rotation={[0, 0, -0.2]}>
+            <meshStandardMaterial color="#cccccc" metalness={0.6} roughness={0.3} />
+          </Box>
+          <Box args={[0.15, 0.08, 2.5]} position={[-0.15, 0, 0]} rotation={[0, 0, 0.2]}>
+            <meshStandardMaterial color="#cccccc" metalness={0.6} roughness={0.3} />
+          </Box>
+        </group>;
+      case 'Grater':
+        // Grater: box with holes
+        return <group ref={meshRef}>
+          <Box args={[1, 2, 0.1]} position={[0, 0, 0]}>
+            <meshStandardMaterial color="#cccccc" metalness={0.6} roughness={0.3} />
+          </Box>
+          <Cylinder args={[0.15, 0.15, 0.6, 16]} position={[0, 1.2, 0]} rotation={[Math.PI / 2, 0, 0]}>
+            <meshStandardMaterial color="#8b4513" metalness={0.2} roughness={0.6} />
+          </Cylinder>
+        </group>;
+      case 'Masher':
+        // Masher: grid head + handle
+        return <group ref={meshRef}>
+          <Cylinder args={[0.6, 0.6, 0.15, 32]} position={[0, 0, 0.5]}>
+            <meshStandardMaterial color="#cccccc" metalness={0.5} roughness={0.4} />
+          </Cylinder>
+          <Cylinder args={[0.12, 0.12, 1.8, 16]} position={[0, 0, -0.8]} rotation={[Math.PI / 2, 0, 0]}>
+            <meshStandardMaterial color="#8b4513" metalness={0.2} roughness={0.6} />
+          </Cylinder>
+        </group>;
+      case 'Turner':
+        // Turner: slotted spatula
+        return <group ref={meshRef}>
+          <Box args={[1.2, 0.08, 1]} position={[0, 0, 0.5]}>
+            <meshStandardMaterial color="#cccccc" metalness={0.5} roughness={0.4} />
+          </Box>
+          <Cylinder args={[0.1, 0.1, 1.8, 16]} position={[0, 0, -1]} rotation={[Math.PI / 2, 0, 0]}>
+            <meshStandardMaterial color="#333333" metalness={0.3} roughness={0.5} />
+          </Cylinder>
+        </group>;
+      case 'Strainer':
+        // Strainer: bowl with mesh + handle
+        return <group ref={meshRef}>
+          <Sphere args={[0.7, 32, 32]} position={[0, 0, 0]} scale={[1, 0.5, 1]}>
+            <meshStandardMaterial color="#cccccc" metalness={0.6} roughness={0.3} wireframe={false} />
+          </Sphere>
+          <Cylinder args={[0.1, 0.1, 1.5, 16]} position={[0.7, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+            <meshStandardMaterial color="#8b4513" metalness={0.2} roughness={0.6} />
+          </Cylinder>
+        </group>;
       default:
-        return <Box args={[2, 2, 2]} ref={meshRef}>
+        return <Box args={[1, 1, 1]} ref={meshRef}>
           <meshStandardMaterial color="#ffa726" metalness={0.4} roughness={0.4} emissive="#ff9800" emissiveIntensity={0.2} />
         </Box>;
     }
