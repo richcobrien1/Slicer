@@ -8,12 +8,17 @@ import './ModelViewer.css';
 const STLModel = ({ url }) => {
   const geometry = useLoader(STLLoader, url);
   
+  // Center the geometry
+  geometry.center();
+  
   return (
     <mesh geometry={geometry}>
       <meshStandardMaterial 
-        color="#FFD700" 
-        metalness={0.9} 
-        roughness={0.1} 
+        color="#6B6B6B" 
+        metalness={0.4} 
+        roughness={0.6}
+        emissive="#3A3A3A"
+        emissiveIntensity={0.2}
       />
     </mesh>
   );
@@ -55,7 +60,7 @@ const ModelViewer = ({ selectedModel }) => {
         </Canvas>
       </div>
       <div className="viewer-controls">
-        <p>���️ Drag to rotate • Scroll to zoom • Right-click to pan</p>
+        <p>🖱️ Drag to rotate • Scroll to zoom • Right-click to pan</p>
       </div>
     </div>
   );

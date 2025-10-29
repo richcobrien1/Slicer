@@ -24,31 +24,51 @@ body {
 }
 
 .app-header {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
   color: #e0e0e0;
-  margin-bottom: 15px;
-  padding: 10px;
+  margin-bottom: 8px;
+  padding: 5px 15px;
   flex-shrink: 0;
   border-bottom: 2px solid #333;
+  height: 40px;
+  max-height: 40px;
+}
+
+.header-icon {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+}
+
+.header-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
 }
 
 .app-header h1 {
-  font-size: 36px;
-  margin-bottom: 5px;
+  font-size: 16px;
+  margin: 0;
   text-shadow: none;
   font-weight: 700;
   letter-spacing: 2px;
   color: #ffffff;
   text-transform: uppercase;
+  line-height: 1;
 }
 
 .tagline {
-  font-size: 14px;
+  font-size: 7px;
   opacity: 0.7;
   font-weight: 400;
-  color: #999;
+  color: #ff9800;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
+  margin-top: 2px;
 }
 
 .app-container {
@@ -74,10 +94,11 @@ body {
 .left-panel {
   background: #2a2a2a;
   border-radius: 4px;
-  padding: 15px;
+  padding: 15px 15px 15px 15px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
   overflow-y: auto;
   border: 1px solid #333;
+  padding-right: 10px;
 }
 
 .middle-panel {

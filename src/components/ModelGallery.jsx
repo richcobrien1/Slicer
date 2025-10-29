@@ -8,9 +8,19 @@ import './ModelGallery.css';
 const ModelThumbnail = ({ modelName }) => {
   try {
     const geometry = useLoader(STLLoader, `/models/${modelName.toLowerCase()}.stl`);
+    
+    // Center the geometry
+    geometry.center();
+    
     return (
       <mesh geometry={geometry} scale={0.03}>
-        <meshStandardMaterial color="#FFD700" metalness={0.9} roughness={0.1} />
+        <meshStandardMaterial 
+          color="#6B6B6B" 
+          metalness={0.4} 
+          roughness={0.6} 
+          emissive="#3A3A3A"
+          emissiveIntensity={0.2}
+        />
       </mesh>
     );
   } catch (error) {
@@ -22,8 +32,9 @@ const ThumbnailCanvas = ({ modelName }) => {
   return (
     <Canvas camera={{ position: [0, 0, 4], fov: 50 }} style={{ width: '100%', height: '100%' }}>
       <Suspense fallback={null}>
-        <ambientLight intensity={0.8} />
-        <directionalLight position={[2, 2, 2]} intensity={1} />
+        <ambientLight intensity={1.2} />
+        <directionalLight position={[3, 3, 3]} intensity={1.5} />
+        <directionalLight position={[-2, -2, -1]} intensity={0.5} />
         <ModelThumbnail modelName={modelName} />
         <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={2} />
       </Suspense>
@@ -46,6 +57,9 @@ const ModelGallery = ({ onSelectModel }) => {
     { id: 10, name: 'Container_70x40', thumbnail: '📦', description: 'Knurled Container Body 70x40mm' },
     { id: 11, name: 'Container_80x40', thumbnail: '📦', description: 'Knurled Container Body 80x40mm' },
     { id: 12, name: 'Container_40x60', thumbnail: '📦', description: 'Knurled Container Body 40x60mm' },
+    { id: 13, name: 'Seatbelt_F150', thumbnail: '🚗', description: 'Seat Belt Silencer F-150' },
+    { id: 14, name: 'Seatbelt_Tundra', thumbnail: '🚗', description: 'Seat Belt Silencer Tundra' },
+    { id: 15, name: 'Seatbelt_Blank', thumbnail: '🚗', description: 'Seat Belt Silencer Blank' },
   ];
 
   const [selectedId, setSelectedId] = useState(null);
