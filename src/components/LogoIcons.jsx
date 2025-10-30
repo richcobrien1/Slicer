@@ -26,28 +26,17 @@ function createSShape() {
   return shape;
 }
 
-// 1. Bold "S" Letter Logo
+// 1. Bold "S" Letter Logo - Simplified torus knot
 export const SLetterLogo = () => {
   return (
     <mesh rotation={[0.3, 0.5, 0]}>
-      <extrudeGeometry
-        args={[
-          createSShape(),
-          {
-            depth: 0.3,
-            bevelEnabled: true,
-            bevelThickness: 0.05,
-            bevelSize: 0.05,
-            bevelSegments: 3
-          }
-        ]}
-      />
+      <torusKnotGeometry args={[0.5, 0.15, 64, 8, 2, 3]} />
       <meshStandardMaterial 
         color="#ff9800" 
         metalness={0.8} 
         roughness={0.2}
         emissive="#ff6600"
-        emissiveIntensity={0.2}
+        emissiveIntensity={0.3}
       />
     </mesh>
   );

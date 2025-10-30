@@ -1,44 +1,14 @@
-import { useState, useEffect, Suspense } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { useState } from 'react';
 import ModelGallery from './components/ModelGallery';
 import ModelViewer from './components/ModelViewer';
 import VoiceCustomization from './components/VoiceCustomization';
 import ExportControls from './components/ExportControls';
-import { 
-  SLetterLogo, 
-  SlicingBladeLogo, 
-  LayerStackLogo, 
-  GeometricCubeLogo, 
-  PrinterNozzleLogo, 
-  SpiralLogo 
-} from './components/LogoIcons';
+import { RotatingModelIcon } from './components/RotatingModelIcon';
 import './App.css';
 
 function App() {
   const [selectedModel, setSelectedModel] = useState(null);
   const [customizationRequests, setCustomizationRequests] = useState([]);
-  const [logoIndex, setLogoIndex] = useState(0);
-
-  // Array of logo components
-  const logos = [
-    SLetterLogo,
-    SlicingBladeLogo,
-    LayerStackLogo,
-    GeometricCubeLogo,
-    PrinterNozzleLogo,
-    SpiralLogo
-  ];
-
-  // Rotate logos every 5 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setLogoIndex((prev) => (prev + 1) % logos.length);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const CurrentLogo = logos[logoIndex];
 
   const handleModelSelect = (model) => {
     setSelectedModel(model);
@@ -59,14 +29,7 @@ function App() {
     <div className="app">
       <header className="app-header">
         <div className="header-icon">
-          <Canvas camera={{ position: [0, 0, 3], fov: 50 }}>
-            <Suspense fallback={null}>
-              <ambientLight intensity={1} />
-              <directionalLight position={[2, 2, 2]} intensity={1.5} />
-              <directionalLight position={[-2, -1, -2]} intensity={0.5} />
-              <CurrentLogo />
-            </Suspense>
-          </Canvas>
+          <RotatingModelIcon />
         </div>
         <div className="header-text">
           <h1>SLICER</h1>

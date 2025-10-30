@@ -41,6 +41,14 @@ body {
   width: 30px;
   height: 30px;
   flex-shrink: 0;
+  position: relative;
+}
+
+.header-icon > div,
+.header-icon canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
 }
 
 .header-text {
