@@ -19,7 +19,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.9);
+  background: rgba(0, 0, 0, 0.25);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -47,6 +47,7 @@
   text-transform: uppercase;
   letter-spacing: 2px;
   margin: 8px 0 0 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
 }
 
 .export-controls h2 {
