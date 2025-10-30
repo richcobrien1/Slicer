@@ -3,14 +3,12 @@ import ModelGallery from './components/ModelGallery';
 import ModelViewer from './components/ModelViewer';
 import VoiceCustomization from './components/VoiceCustomization';
 import ExportControls from './components/ExportControls';
-import AIChat from './components/AIChat';
 import { RotatingModelIcon } from './components/RotatingModelIcon';
 import './App.css';
 
 function App() {
   const [selectedModel, setSelectedModel] = useState(null);
   const [customizationRequests, setCustomizationRequests] = useState([]);
-  const [showAIChat, setShowAIChat] = useState(false);
   const [importedModels, setImportedModels] = useState([]);
   const viewerRef = useRef(null);
   const galleryRef = useRef(null);
@@ -127,7 +125,6 @@ function App() {
         <div className="right-panel">
           <VoiceCustomization 
             onCustomizationRequest={handleCustomization}
-            onOpenAIChat={() => setShowAIChat(true)}
           />
           <ExportControls 
             selectedModel={selectedModel}
@@ -135,13 +132,6 @@ function App() {
           />
         </div>
       </div>
-
-      {/* AI Chat Popup */}
-      <AIChat 
-        isOpen={showAIChat}
-        onClose={() => setShowAIChat(false)}
-        onSubmitPrompt={handleCustomization}
-      />
     </div>
   );
 }
