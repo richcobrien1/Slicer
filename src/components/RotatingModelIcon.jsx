@@ -2,45 +2,40 @@ import { useState, useEffect } from 'react';
 
 // Collection of animated SVG icons
 const icons = [
-  // Cube wireframe
+  // 3D Cube
   <svg key="cube" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
     <g className="rotate-icon">
       <path d="M50 20 L80 35 L80 65 L50 80 L20 65 L20 35 Z" 
         fill="none" stroke="#ff9800" strokeWidth="3"/>
       <line x1="50" y1="20" x2="50" y2="80" stroke="#ff9800" strokeWidth="2"/>
       <line x1="20" y1="35" x2="80" y2="35" stroke="#ff9800" strokeWidth="2"/>
+      <line x1="20" y1="65" x2="80" y2="65" stroke="#ff9800" strokeWidth="2"/>
+      <polygon points="50,20 80,35 50,50 20,35" fill="#ff9800" opacity="0.3"/>
     </g>
   </svg>,
   
-  // Layer stack
-  <svg key="layers" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <g className="pulse-icon">
-      <rect x="25" y="65" width="50" height="8" fill="#6B6B6B" rx="2"/>
-      <rect x="28" y="53" width="44" height="8" fill="#6B6B6B" rx="2"/>
-      <rect x="31" y="41" width="38" height="8" fill="#6B6B6B" rx="2"/>
-      <rect x="34" y="29" width="32" height="8" fill="#ff9800" rx="2"/>
-    </g>
-  </svg>,
-  
-  // Container
-  <svg key="container" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  // Triangle/Pyramid
+  <svg key="triangle" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
     <g className="rotate-icon">
-      <rect x="30" y="30" width="40" height="40" fill="none" stroke="#ff9800" strokeWidth="3" rx="2"/>
-      <line x1="35" y1="30" x2="35" y2="70" stroke="#6B6B6B" strokeWidth="1"/>
-      <line x1="40" y1="30" x2="40" y2="70" stroke="#6B6B6B" strokeWidth="1"/>
-      <line x1="60" y1="30" x2="60" y2="70" stroke="#6B6B6B" strokeWidth="1"/>
-      <line x1="65" y1="30" x2="65" y2="70" stroke="#6B6B6B" strokeWidth="1"/>
+      <path d="M50 15 L85 75 L15 75 Z" fill="none" stroke="#ff9800" strokeWidth="3"/>
+      <line x1="50" y1="15" x2="50" y2="75" stroke="#ff9800" strokeWidth="2" opacity="0.5"/>
+      <line x1="50" y1="15" x2="15" y2="75" stroke="#ff9800" strokeWidth="2"/>
+      <line x1="50" y1="15" x2="85" y2="75" stroke="#ff9800" strokeWidth="2"/>
+      <polygon points="50,15 85,75 50,50" fill="#ff9800" opacity="0.2"/>
+      <polygon points="50,15 15,75 50,50" fill="#ff9800" opacity="0.3"/>
     </g>
   </svg>,
   
-  // Nozzle
-  <svg key="nozzle" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <g className="pulse-icon">
-      <rect x="35" y="20" width="30" height="25" fill="#6B6B6B" rx="2"/>
-      <path d="M35 45 L30 60 L50 60 L50 45 Z M50 45 L50 60 L70 60 L65 45 Z" fill="#ff9800"/>
-      <circle cx="50" cy="70" r="3" fill="#ff9800" opacity="0.5">
-        <animate attributeName="opacity" values="0.5;1;0.5" dur="1s" repeatCount="indefinite"/>
-      </circle>
+  // Globe
+  <svg key="globe" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <g className="rotate-icon">
+      <circle cx="50" cy="50" r="35" fill="none" stroke="#ff9800" strokeWidth="3"/>
+      <ellipse cx="50" cy="50" rx="35" ry="15" fill="none" stroke="#ff9800" strokeWidth="2"/>
+      <ellipse cx="50" cy="50" rx="15" ry="35" fill="none" stroke="#ff9800" strokeWidth="2"/>
+      <line x1="50" y1="15" x2="50" y2="85" stroke="#ff9800" strokeWidth="2"/>
+      <circle cx="50" cy="50" r="3" fill="#ff9800"/>
+      <path d="M50 50 Q65 35 70 30" stroke="#ff9800" strokeWidth="1.5" fill="none" opacity="0.5"/>
+      <path d="M50 50 Q35 65 30 70" stroke="#ff9800" strokeWidth="1.5" fill="none" opacity="0.5"/>
     </g>
   </svg>,
 ];
