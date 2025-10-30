@@ -2,6 +2,30 @@ import { Canvas } from '@react-three/fiber';
 import { Suspense } from 'react';
 import * as THREE from 'three';
 
+// Helper function to create S shape - must be defined first
+function createSShape() {
+  const shape = new THREE.Shape();
+  
+  // Top curve of S
+  shape.moveTo(0.2, 0.6);
+  shape.bezierCurveTo(0.6, 0.6, 0.6, 0.3, 0.3, 0.3);
+  
+  // Middle to bottom curve
+  shape.bezierCurveTo(0, 0.3, 0, 0, 0.3, 0);
+  shape.bezierCurveTo(0.6, 0, 0.6, -0.3, 0.2, -0.3);
+  
+  // Inner cutout (make it hollow)
+  const hole = new THREE.Path();
+  hole.moveTo(0.25, 0.5);
+  hole.bezierCurveTo(0.45, 0.5, 0.45, 0.35, 0.3, 0.35);
+  hole.bezierCurveTo(0.15, 0.35, 0.15, 0.15, 0.3, 0.15);
+  hole.bezierCurveTo(0.45, 0.15, 0.45, -0.15, 0.25, -0.15);
+  
+  shape.holes.push(hole);
+  
+  return shape;
+}
+
 // 1. Bold "S" Letter Logo
 export const SLetterLogo = () => {
   return (
@@ -172,30 +196,6 @@ export const SpiralLogo = () => {
     </mesh>
   );
 };
-
-// Helper function to create S shape
-function createSShape() {
-  const shape = new THREE.Shape();
-  
-  // Top curve of S
-  shape.moveTo(0.2, 0.6);
-  shape.bezierCurveTo(0.6, 0.6, 0.6, 0.3, 0.3, 0.3);
-  
-  // Middle to bottom curve
-  shape.bezierCurveTo(0, 0.3, 0, 0, 0.3, 0);
-  shape.bezierCurveTo(0.6, 0, 0.6, -0.3, 0.2, -0.3);
-  
-  // Inner cutout (make it hollow)
-  const hole = new THREE.Path();
-  hole.moveTo(0.25, 0.5);
-  hole.bezierCurveTo(0.45, 0.5, 0.45, 0.35, 0.3, 0.35);
-  hole.bezierCurveTo(0.15, 0.35, 0.15, 0.15, 0.3, 0.15);
-  hole.bezierCurveTo(0.45, 0.15, 0.45, -0.15, 0.25, -0.15);
-  
-  shape.holes.push(hole);
-  
-  return shape;
-}
 
 // Wrapper component with Canvas
 export const LogoIcon = ({ type = 'sletter' }) => {
