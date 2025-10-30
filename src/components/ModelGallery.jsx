@@ -2,6 +2,7 @@ import { useState, Suspense } from 'react';
 import { Canvas, useLoader } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader';
+import ImportZone from './ImportZone';
 import './ModelGallery.css';
 
 // Mini 3D thumbnail component
@@ -63,14 +64,13 @@ const ModelGallery = ({ onSelectModel }) => {
   ]);
 
   const [selectedId, setSelectedId] = useState(null);
-  const [isDragging, setIsDragging] = useState(false);
 
   const handleSelect = (model) => {
     setSelectedId(model.id);
     onSelectModel(model);
   };
 
-  const processFile = (file) => {
+  const handleFileImport = (file) => {
     if (!file || !file.name.toLowerCase().endsWith('.stl')) {
       alert('❌ Please upload a valid STL file');
       return;
@@ -101,83 +101,14 @@ const ModelGallery = ({ onSelectModel }) => {
     alert(`✅ Successfully imported: ${fileName}`);
   };
 
-  const handleImportSTL = async () => {
-    try {
-      // Create file input
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = '.stl';
-      
-      input.onchange = async (e) => {
-        const file = e.target.files[0];
-        if (file) processFile(file);
-      };
-      
-      input.click();
-    } catch (error) {
-      console.error('Import error:', error);
-      alert('❌ Error importing STL file. Please try again.');
-    }
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-
-    const file = e.dataTransfer.files[0];
-    if (file) processFile(file);
-  };
-
   return (
-    <div 
-      className={`model-gallery ${isDragging ? 'dragging' : ''}`}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-    >
-      {isDragging && (
-        <div className="drag-overlay">
-          <div className="drag-message">
-            <p>📁</p>
-            <p>Drop STL file here</p>
-          </div>
-        </div>
-      )}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-        <h2 style={{ margin: 0 }}>Select a 3D Model</h2>
-        <button 
-          onClick={handleImportSTL}
-          style={{
-            padding: '6px 12px',
-            background: '#ff9800',
-            border: 'none',
-            borderRadius: '4px',
-            color: '#fff',
-            cursor: 'pointer',
-            fontSize: '11px',
-            fontWeight: '600',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px'
-          }}
-          onMouseOver={(e) => e.target.style.background = '#f57c00'}
-          onMouseOut={(e) => e.target.style.background = '#ff9800'}
-        >
-          📁 Import STL
-        </button>
-      </div>
+    <div className="model-gallery">
+      <h2>Select a 3D Model</h2>
+      
+      {/* Import Zone */}
+      <ImportZone onFileImport={handleFileImport} />
+      
+      {/* Model Grid */}
       <div className="gallery-grid">
         {models.map((model) => (
           <div

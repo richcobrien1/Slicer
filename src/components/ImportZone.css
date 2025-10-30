@@ -1,0 +1,154 @@
+.import-zone {
+  background: linear-gradient(135deg, #1f1f1f 0%, #2a2a2a 100%);
+  border: 2px dashed #555;
+  border-radius: 8px;
+  padding: 30px 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 15px;
+  position: relative;
+  overflow: hidden;
+}
+
+.import-zone::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 152, 0, 0.05) 0%, rgba(245, 124, 0, 0.05) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.import-zone:hover::before {
+  opacity: 1;
+}
+
+.import-zone:hover {
+  border-color: #ff9800;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(255, 152, 0, 0.2);
+}
+
+.import-zone.dragging {
+  border-color: #ff9800;
+  border-style: solid;
+  border-width: 3px;
+  background: linear-gradient(135deg, rgba(255, 152, 0, 0.1) 0%, rgba(245, 124, 0, 0.15) 100%);
+  transform: scale(1.02);
+  box-shadow: 0 8px 24px rgba(255, 152, 0, 0.4);
+}
+
+.import-content {
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.import-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.import-zone.dragging .import-icon {
+  animation: bounce 0.5s ease infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+.import-zone h3 {
+  margin: 0 0 8px 0;
+  color: #ff9800;
+  font-size: 18px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.import-instruction {
+  margin: 0 0 15px 0;
+  color: #b0b0b0;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.import-zone.dragging .import-instruction {
+  color: #ff9800;
+  font-weight: 600;
+}
+
+.import-formats {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+.format-badge {
+  background: #444;
+  color: #ff9800;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid #555;
+  transition: all 0.2s;
+}
+
+.import-zone:hover .format-badge {
+  background: #555;
+  border-color: #ff9800;
+}
+
+.import-zone.dragging .format-badge {
+  background: #ff9800;
+  color: #1f1f1f;
+  border-color: #ff9800;
+  transform: scale(1.1);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .import-zone {
+    padding: 20px 15px;
+  }
+
+  .import-icon {
+    font-size: 36px;
+  }
+
+  .import-zone h3 {
+    font-size: 16px;
+  }
+
+  .import-instruction {
+    font-size: 11px;
+  }
+
+  .format-badge {
+    font-size: 9px;
+    padding: 3px 10px;
+  }
+}
