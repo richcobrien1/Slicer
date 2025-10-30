@@ -43,13 +43,14 @@ const Model3D = ({ modelType, fileURL, transformations }) => {
   );
 };
 
-const ModelViewer = forwardRef(({ selectedModel, onModelImport }, ref) => {
+const ModelViewer = forwardRef(({ selectedModel, onViewFile }, ref) => {
   const [transformations, setTransformations] = useState({
     scale: 0.05,
     rotation: [0, 0, 0],
     position: [0, 0, 0]
   });
   const [isDragging, setIsDragging] = useState(false);
+  const [tempViewModel, setTempViewModel] = useState(null);
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -70,9 +71,23 @@ const ModelViewer = forwardRef(({ selectedModel, onModelImport }, ref) => {
 
     const file = e.dataTransfer.files[0];
     if (file && file.name.toLowerCase().endsWith('.stl')) {
-      if (onModelImport) {
-        onModelImport(file);
+      // Create temporary view model (doesn't add to gallery)
+      const fileURL = URL.createObjectURL(file);
+      const fileName = file.name.replace('.stl', '');
+      
+      const tempModel = {
+        id: 'temp-' + Date.now(),
+        name: fileName,
+        fileURL: fileURL,
+        isTemp: true
+      };
+      
+      setTempViewModel(tempModel);
+      if (onViewFile) {
+        onViewFile(tempModel);
       }
+      
+      alert(`👁️ Viewing: ${fileName} (not added to library)`);
     } else {
       alert('❌ Please drop a valid STL file');
     }
@@ -134,13 +149,14 @@ const ModelViewer = forwardRef(({ selectedModel, onModelImport }, ref) => {
       {isDragging && (
         <div className="drag-overlay">
           <div className="drag-message">
-            <p>📁</p>
-            <p>Drop STL file to view</p>
+            <p>�️</p>
+            <p>Drop to view (not saved)</p>
           </div>
         </div>
       )}
       <div className="viewer-header">
-        <h2>{selectedModel ? selectedModel.name : 'Select a model'}</h2>
+        <h2>{(tempViewModel || selectedModel) ? (tempViewModel || selectedModel).name : 'Select a model'}</h2>
+        {tempViewModel && <span className="temp-badge">Viewing only</span>}
       </div>
       <div className="canvas-container">
         <Canvas camera={{ position: [0, 0, 5], fov: 50 }}>
@@ -150,7 +166,7 @@ const ModelViewer = forwardRef(({ selectedModel, onModelImport }, ref) => {
             <directionalLight position={[-5, -5, -5]} intensity={0.6} color="#ffffff" />
             <pointLight position={[0, 5, 0]} intensity={0.8} color="#ffffff" />
             <spotLight position={[2, 2, 2]} intensity={1} angle={0.3} penumbra={1} color="#ffffff" />
-            {selectedModel && <Model3D modelType={selectedModel.name} fileURL={selectedModel.fileURL} transformations={transformations} />}
+            {(tempViewModel || selectedModel) && <Model3D modelType={(tempViewModel || selectedModel).name} fileURL={(tempViewModel || selectedModel).fileURL} transformations={transformations} />}
             <OrbitControls 
               enablePan={true}
               enableZoom={true}

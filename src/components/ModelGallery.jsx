@@ -2,7 +2,6 @@ import { useState, Suspense } from 'react';
 import { Canvas, useLoader } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader';
-import ImportZone from './ImportZone';
 import './ModelGallery.css';
 
 // Mini 3D thumbnail component
@@ -64,10 +63,34 @@ const ModelGallery = ({ onSelectModel }) => {
   ]);
 
   const [selectedId, setSelectedId] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const handleSelect = (model) => {
     setSelectedId(model.id);
     onSelectModel(model);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      handleFileImport(file);
+    }
   };
 
   const handleFileImport = (file) => {
@@ -102,11 +125,21 @@ const ModelGallery = ({ onSelectModel }) => {
   };
 
   return (
-    <div className="model-gallery">
+    <div 
+      className={`model-gallery ${isDragging ? 'dragging' : ''}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
       <h2>Select a 3D Model</h2>
-      
-      {/* Import Zone */}
-      <ImportZone onFileImport={handleFileImport} />
+      {isDragging && (
+        <div className="drop-hint">
+          <div className="drop-hint-content">
+            <span className="drop-icon">📁</span>
+            <span className="drop-text">Drop to add to library</span>
+          </div>
+        </div>
+      )}
       
       {/* Model Grid */}
       <div className="gallery-grid">

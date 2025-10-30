@@ -17,15 +17,54 @@ const ExportControls = ({ selectedModel, onModelImport }) => {
     setIsDragging(false);
   };
 
-  const handleDrop = (e) => {
+  const handleDrop = async (e) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
 
     const file = e.dataTransfer.files[0];
     if (file && file.name.toLowerCase().endsWith('.stl')) {
-      if (onModelImport) {
-        onModelImport(file);
+      const fileName = file.name.replace('.stl', '');
+      
+      try {
+        // Check if File System Access API is available
+        if ('showSaveFilePicker' in window) {
+          // Read the file as ArrayBuffer for direct printing
+          const arrayBuffer = await file.arrayBuffer();
+          
+          const options = {
+            suggestedName: `print_${fileName}.stl`,
+            types: [{
+              description: 'STL Files',
+              accept: { 'application/sla': ['.stl'] }
+            }]
+          };
+          
+          const handle = await window.showSaveFilePicker(options);
+          const writable = await handle.createWritable();
+          await writable.write(arrayBuffer);
+          await writable.close();
+          
+          alert(`🖨️ ${fileName} sent to printer!\n\nNext steps:\n1. Configure print settings in your slicer\n2. Send to printer\n\nFile saved to your printer's folder.`);
+        } else {
+          // Fallback - download the file
+          const url = URL.createObjectURL(file);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `print_${fileName}.stl`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          
+          alert(`🖨️ ${fileName} ready for printing!\n\nFile downloaded. Import into your slicer software to print.`);
+        }
+      } catch (error) {
+        if (error.name === 'AbortError') {
+          return;
+        }
+        console.error('Print error:', error);
+        alert('❌ Error preparing file for printer. Please try again.');
       }
     } else {
       alert('❌ Please drop a valid STL file');
@@ -118,8 +157,8 @@ const ExportControls = ({ selectedModel, onModelImport }) => {
       {isDragging && (
         <div className="drag-overlay">
           <div className="drag-message">
-            <p>📁</p>
-            <p>Drop to print</p>
+            <p>�️</p>
+            <p>Drop to print directly</p>
           </div>
         </div>
       )}

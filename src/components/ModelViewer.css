@@ -49,6 +49,9 @@
 .viewer-header {
   margin-bottom: 8px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .viewer-header h2 {
@@ -60,6 +63,20 @@
   font-weight: 600;
   border-bottom: 2px solid #444;
   padding-bottom: 8px;
+  flex: 1;
+}
+
+.temp-badge {
+  background: rgba(255, 152, 0, 0.2);
+  color: #ff9800;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: 1px solid #ff9800;
+  white-space: nowrap;
 }
 
 .canvas-container {

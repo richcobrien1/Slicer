@@ -48,6 +48,11 @@ function App() {
     alert(`✅ Successfully imported: ${fileName}`);
   };
 
+  const handleViewFile = (tempModel) => {
+    // Just set as selected for viewing, doesn't add to library
+    setSelectedModel(tempModel);
+  };
+
   const handleCustomization = (instructions) => {
     // Handle both old string format and new AI instructions format
     const displayText = typeof instructions === 'string' 
@@ -118,7 +123,7 @@ function App() {
           <ModelViewer 
             ref={viewerRef} 
             selectedModel={selectedModel}
-            onModelImport={handleModelImport}
+            onViewFile={handleViewFile}
           />
         </div>
 
