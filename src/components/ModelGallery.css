@@ -3,6 +3,47 @@
   height: 100%;
   display: flex;
   flex-direction: column;
+  position: relative;
+}
+
+.model-gallery.dragging {
+  border: 3px dashed #ff9800;
+  background: rgba(255, 152, 0, 0.05);
+}
+
+.drag-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 152, 0, 0.1);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.drag-message {
+  text-align: center;
+  color: #ff9800;
+  font-size: 24px;
+  font-weight: bold;
+  animation: pulse 1s infinite;
+}
+
+.drag-message p:first-child {
+  font-size: 64px;
+  margin: 0;
+}
+
+.drag-message p:last-child {
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin: 10px 0 0 0;
 }
 
 .model-gallery h2 {

@@ -1,28 +1,79 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import ModelGallery from './components/ModelGallery';
 import ModelViewer from './components/ModelViewer';
 import VoiceCustomization from './components/VoiceCustomization';
 import ExportControls from './components/ExportControls';
+import AIChat from './components/AIChat';
 import { RotatingModelIcon } from './components/RotatingModelIcon';
 import './App.css';
 
 function App() {
   const [selectedModel, setSelectedModel] = useState(null);
   const [customizationRequests, setCustomizationRequests] = useState([]);
+  const [showAIChat, setShowAIChat] = useState(false);
+  const [importedModels, setImportedModels] = useState([]);
+  const viewerRef = useRef(null);
+  const galleryRef = useRef(null);
 
   const handleModelSelect = (model) => {
     setSelectedModel(model);
   };
 
-  const handleCustomization = (request) => {
+  const handleModelImport = (file) => {
+    // Create a URL for the file
+    const fileURL = URL.createObjectURL(file);
+    
+    // Extract filename without extension
+    const fileName = file.name.replace('.stl', '');
+    
+    // Create new model entry
+    const newModel = {
+      id: Date.now(),
+      name: fileName,
+      thumbnail: '📁',
+      description: 'Imported STL file',
+      isImported: true,
+      fileURL: fileURL
+    };
+    
+    // Add to imported models
+    setImportedModels(prev => [...prev, newModel]);
+    
+    // Auto-select the imported model
+    setSelectedModel(newModel);
+    
+    // Notify gallery if it has a ref method
+    if (galleryRef.current && galleryRef.current.addImportedModel) {
+      galleryRef.current.addImportedModel(newModel);
+    }
+    
+    alert(`✅ Successfully imported: ${fileName}`);
+  };
+
+  const handleCustomization = (instructions) => {
+    // Handle both old string format and new AI instructions format
+    const displayText = typeof instructions === 'string' 
+      ? instructions 
+      : instructions.explanation || JSON.stringify(instructions);
+    
     setCustomizationRequests([...customizationRequests, {
-      text: request,
-      timestamp: new Date().toLocaleTimeString()
+      text: displayText,
+      timestamp: new Date().toLocaleTimeString(),
+      instructions: typeof instructions === 'object' ? instructions : null
     }]);
     
-    // In production, this would send to AI API for processing
-    console.log('Customization request:', request);
-    alert(`🤖 AI received: "${request}"\n\nIn production, this would modify the 3D model based on your request.`);
+    // If we have transformation instructions, apply them to the model
+    if (typeof instructions === 'object' && instructions.operation) {
+      console.log('Applying transformation:', instructions);
+      
+      // Notify ModelViewer component to apply transformation
+      if (viewerRef.current && viewerRef.current.applyTransformation) {
+        viewerRef.current.applyTransformation(instructions);
+      }
+    } else {
+      // Legacy alert for old string-based requests
+      console.log('Customization request:', instructions);
+    }
   };
 
   return (
@@ -40,7 +91,10 @@ function App() {
       <div className="app-container">
         <div className="left-panel">
           <div className="gallery-wrapper">
-            <ModelGallery onSelectModel={handleModelSelect} />
+            <ModelGallery 
+              ref={galleryRef}
+              onSelectModel={handleModelSelect}
+            />
           </div>
           
           <div className="customization-log">
@@ -63,14 +117,31 @@ function App() {
         </div>
 
         <div className="middle-panel">
-          <ModelViewer selectedModel={selectedModel} />
+          <ModelViewer 
+            ref={viewerRef} 
+            selectedModel={selectedModel}
+            onModelImport={handleModelImport}
+          />
         </div>
 
         <div className="right-panel">
-          <VoiceCustomization onCustomizationRequest={handleCustomization} />
-          <ExportControls selectedModel={selectedModel} />
+          <VoiceCustomization 
+            onCustomizationRequest={handleCustomization}
+            onOpenAIChat={() => setShowAIChat(true)}
+          />
+          <ExportControls 
+            selectedModel={selectedModel}
+            onModelImport={handleModelImport}
+          />
         </div>
       </div>
+
+      {/* AI Chat Popup */}
+      <AIChat 
+        isOpen={showAIChat}
+        onClose={() => setShowAIChat(false)}
+        onSubmitPrompt={handleCustomization}
+      />
     </div>
   );
 }

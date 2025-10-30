@@ -200,4 +200,32 @@
     width: 100%;
     text-align: center;
   }
+
+  .ai-chat-trigger {
+    width: 100%;
+  }
+}
+
+/* AI Chat Trigger Button */
+.ai-chat-trigger {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 15px;
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+}
+
+.ai-chat-trigger:hover {
+  background: linear-gradient(135deg, #f57c00, #e65100);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 152, 0, 0.5);
 }

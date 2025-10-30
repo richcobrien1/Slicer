@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import './VoiceCustomization.css';
 
-const VoiceCustomization = ({ onCustomizationRequest }) => {
+const VoiceCustomization = ({ onCustomizationRequest, onOpenAIChat }) => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [recognition, setRecognition] = useState(null);
@@ -123,6 +123,14 @@ const VoiceCustomization = ({ onCustomizationRequest }) => {
           </button>
         </div>
       </div>
+
+      {/* AI Chat & Prompt Library Button */}
+      <button 
+        className="ai-chat-trigger"
+        onClick={onOpenAIChat}
+      >
+        🤖 Open AI Chat & Prompt Library
+      </button>
     </div>
   );
 };
