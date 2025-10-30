@@ -1,31 +1,44 @@
-import { useState, Suspense } from 'react';
-import { Canvas, useLoader } from '@react-three/fiber';
-import { STLLoader } from 'three/examples/jsm/loaders/STLLoader';
+import { useState, useEffect, Suspense } from 'react';
+import { Canvas } from '@react-three/fiber';
 import ModelGallery from './components/ModelGallery';
 import ModelViewer from './components/ModelViewer';
 import VoiceCustomization from './components/VoiceCustomization';
 import ExportControls from './components/ExportControls';
+import { 
+  SLetterLogo, 
+  SlicingBladeLogo, 
+  LayerStackLogo, 
+  GeometricCubeLogo, 
+  PrinterNozzleLogo, 
+  SpiralLogo 
+} from './components/LogoIcons';
 import './App.css';
-
-// Header icon component
-const HeaderIcon = () => {
-  const geometry = useLoader(STLLoader, '/models/container_80x60.stl');
-  geometry.center();
-  
-  return (
-    <mesh geometry={geometry} scale={0.015} rotation={[0.3, 0.5, 0]}>
-      <meshStandardMaterial 
-        color="#ff9800" 
-        metalness={0.8} 
-        roughness={0.2}
-      />
-    </mesh>
-  );
-};
 
 function App() {
   const [selectedModel, setSelectedModel] = useState(null);
   const [customizationRequests, setCustomizationRequests] = useState([]);
+  const [logoIndex, setLogoIndex] = useState(0);
+
+  // Array of logo components
+  const logos = [
+    SLetterLogo,
+    SlicingBladeLogo,
+    LayerStackLogo,
+    GeometricCubeLogo,
+    PrinterNozzleLogo,
+    SpiralLogo
+  ];
+
+  // Rotate logos every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLogoIndex((prev) => (prev + 1) % logos.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const CurrentLogo = logos[logoIndex];
 
   const handleModelSelect = (model) => {
     setSelectedModel(model);
@@ -50,7 +63,8 @@ function App() {
             <Suspense fallback={null}>
               <ambientLight intensity={1} />
               <directionalLight position={[2, 2, 2]} intensity={1.5} />
-              <HeaderIcon />
+              <directionalLight position={[-2, -1, -2]} intensity={0.5} />
+              <CurrentLogo />
             </Suspense>
           </Canvas>
         </div>
@@ -62,19 +76,27 @@ function App() {
 
       <div className="app-container">
         <div className="left-panel">
-          <ModelGallery onSelectModel={handleModelSelect} />
+          <div className="gallery-wrapper">
+            <ModelGallery onSelectModel={handleModelSelect} />
+          </div>
           
-          {customizationRequests.length > 0 && (
-            <div className="customization-log">
-              <h3>📝 History</h3>
-              {customizationRequests.slice(-3).map((req, index) => (
-                <div key={index} className="log-item">
-                  <span className="log-time">{req.timestamp}</span>
-                  <span className="log-text">{req.text}</span>
+          <div className="customization-log">
+            <h3>📝 History</h3>
+            <div className="log-items">
+              {customizationRequests.length === 0 ? (
+                <div className="log-item">
+                  <span className="log-text" style={{color: '#666'}}>No customization requests yet...</span>
                 </div>
-              ))}
+              ) : (
+                customizationRequests.slice().reverse().map((req, index) => (
+                  <div key={index} className="log-item">
+                    <span className="log-time">{req.timestamp}</span>
+                    <span className="log-text">{req.text}</span>
+                  </div>
+                ))
+              )}
             </div>
-          )}
+          </div>
         </div>
 
         <div className="middle-panel">
