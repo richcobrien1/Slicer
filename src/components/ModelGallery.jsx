@@ -1,7 +1,9 @@
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { Canvas, useLoader } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader';
+import { supabase } from '../utils/supabaseClient';
+import { uploadModelFile, saveImportedModel, getImportedModels, isPremiumUser } from '../utils/modelStorage';
 import './ModelGallery.css';
 
 // Mini 3D thumbnail component
@@ -43,8 +45,8 @@ const ThumbnailCanvas = ({ modelName }) => {
 };
 
 const ModelGallery = ({ onSelectModel }) => {
-  // Refined jewelry and accessory models - in production, these would come from a database/API
-  const [models, setModels] = useState([
+  // Default models
+  const defaultModels = [
     { id: 1, name: 'Container_60x40', thumbnail: '📦', description: 'Knurled Container Body 60x40mm' },
     { id: 2, name: 'Container_70x50', thumbnail: '📦', description: 'Knurled Container Body 70x50mm' },
     { id: 3, name: 'Container_80x60', thumbnail: '📦', description: 'Knurled Container Body 80x60mm' },
@@ -60,10 +62,69 @@ const ModelGallery = ({ onSelectModel }) => {
     { id: 13, name: 'Seatbelt_F150', thumbnail: '🚗', description: 'Seat Belt Silencer F-150' },
     { id: 14, name: 'Seatbelt_Tundra', thumbnail: '🚗', description: 'Seat Belt Silencer Tundra' },
     { id: 15, name: 'Seatbelt_Blank', thumbnail: '🚗', description: 'Seat Belt Silencer Blank' },
-  ]);
+  ];
 
+  const [models, setModels] = useState(defaultModels);
   const [selectedId, setSelectedId] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load models on mount
+  useEffect(() => {
+    loadModels();
+  }, []);
+
+  const loadModels = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Check if user is premium
+      const { data: { user } } = await supabase.auth.getUser();
+      const premium = user ? await isPremiumUser() : false;
+      setIsPremium(premium);
+
+      let importedModels = [];
+      
+      if (premium && user) {
+        // Load from Supabase for premium users
+        importedModels = await getImportedModels();
+        importedModels = importedModels.map(m => ({
+          id: m.id,
+          name: m.name,
+          thumbnail: m.thumbnail,
+          description: m.description,
+          isImported: true,
+          fileURL: m.file_url
+        }));
+      } else {
+        // Load from localStorage for free users
+        try {
+          const saved = localStorage.getItem('importedModels');
+          if (saved) {
+            importedModels = JSON.parse(saved);
+          }
+        } catch (error) {
+          console.error('Error loading from localStorage:', error);
+        }
+      }
+
+      setModels([...defaultModels, ...importedModels]);
+    } catch (error) {
+      console.error('Error loading models:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Save to localStorage for free users
+  const saveToLocalStorage = (importedModels) => {
+    try {
+      localStorage.setItem('importedModels', JSON.stringify(importedModels));
+    } catch (error) {
+      console.error('Error saving to localStorage:', error);
+    }
+  };
 
   const handleSelect = (model) => {
     setSelectedId(model.id);
@@ -93,35 +154,73 @@ const ModelGallery = ({ onSelectModel }) => {
     }
   };
 
-  const handleFileImport = (file) => {
+  const handleFileImport = async (file) => {
     if (!file || !file.name.toLowerCase().endsWith('.stl')) {
       alert('❌ Please upload a valid STL file');
       return;
     }
 
-    // Create a URL for the file
-    const fileURL = URL.createObjectURL(file);
-    
-    // Extract filename without extension
-    const fileName = file.name.replace('.stl', '');
-    
-    // Create new model entry
-    const newModel = {
-      id: models.length + 1,
-      name: fileName,
-      thumbnail: '📁',
-      description: 'Imported STL file',
-      isImported: true,
-      fileURL: fileURL
-    };
-    
-    // Add to models list
-    setModels([...models, newModel]);
-    
-    // Auto-select the imported model
-    handleSelect(newModel);
-    
-    alert(`✅ Successfully imported: ${fileName}`);
+    try {
+      const fileName = file.name.replace('.stl', '');
+      
+      // Check if user is authenticated for premium features
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (isPremium && user) {
+        // Upload to Supabase for premium users
+        alert('⏳ Uploading to cloud...');
+        
+        const { url, path } = await uploadModelFile(file, user.id);
+        
+        const modelData = {
+          name: fileName,
+          description: 'Imported STL file',
+          file_url: url,
+          file_size: file.size,
+          thumbnail: '📁'
+        };
+        
+        const savedModel = await saveImportedModel(modelData);
+        
+        const newModel = {
+          id: savedModel.id,
+          name: savedModel.name,
+          thumbnail: savedModel.thumbnail,
+          description: savedModel.description,
+          isImported: true,
+          fileURL: savedModel.file_url
+        };
+        
+        setModels([...models, newModel]);
+        handleSelect(newModel);
+        alert(`✅ Successfully imported to cloud: ${fileName}`);
+      } else {
+        // Save to localStorage for free users
+        const fileURL = URL.createObjectURL(file);
+        
+        const newModel = {
+          id: Date.now(),
+          name: fileName,
+          thumbnail: '📁',
+          description: 'Imported STL file',
+          isImported: true,
+          fileURL: fileURL
+        };
+        
+        const updatedModels = [...models, newModel];
+        setModels(updatedModels);
+        
+        // Save to localStorage
+        const importedModels = updatedModels.filter(m => m.isImported);
+        saveToLocalStorage(importedModels);
+        
+        handleSelect(newModel);
+        alert(`✅ Successfully imported locally: ${fileName}`);
+      }
+    } catch (error) {
+      console.error('Error importing file:', error);
+      alert('❌ Error importing file. Please try again.');
+    }
   };
 
   return (
