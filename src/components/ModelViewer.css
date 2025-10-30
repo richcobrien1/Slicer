@@ -20,8 +20,9 @@
   background: rgba(0, 0, 0, 0.25);
   backdrop-filter: blur(4px);
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
+  padding-bottom: 40px;
   z-index: 100;
   pointer-events: none;
 }
@@ -29,21 +30,21 @@
 .model-viewer .drag-message {
   text-align: center;
   color: #ff9800;
-  font-size: 24px;
+  font-size: 20px;
   font-weight: bold;
   animation: pulse 1s infinite;
 }
 
 .model-viewer .drag-message p:first-child {
-  font-size: 64px;
+  font-size: 48px;
   margin: 0;
 }
 
 .model-viewer .drag-message p:last-child {
-  font-size: 18px;
+  font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 2px;
-  margin: 10px 0 0 0;
+  margin: 8px 0 0 0;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
 }
 
