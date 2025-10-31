@@ -50,19 +50,7 @@ const ThumbnailCanvas = ({ modelName, emoji, index }) => {
 
   return (
     <Canvas camera={{ position: [3, 3, 3], fov: 50 }} style={{ width: '100%', height: '100%' }}>
-      <Suspense fallback={
-        <div style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '48px',
-          background: '#252525'
-        }}>
-          {emoji}
-        </div>
-      }>
+      <Suspense fallback={null}>
         <ambientLight intensity={1.2} />
         <directionalLight position={[3, 3, 3]} intensity={1.5} />
         <directionalLight position={[-2, -2, -1]} intensity={0.5} />
