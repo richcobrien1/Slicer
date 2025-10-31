@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { Canvas, useLoader } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader';
@@ -28,36 +28,11 @@ const ModelThumbnail = ({ modelName }) => {
   }
 };
 
-// Lazy-loaded 3D thumbnail with Intersection Observer
-const LazyThumbnailCanvas = ({ modelName, emoji, index }) => {
-  const [isVisible, setIsVisible] = useState(() => {
-    // Show first 8 thumbnails immediately (assuming grid layout)
-    return index < 8;
-  });
-  const containerRef = useRef(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsVisible(entry.isIntersecting);
-      },
-      { threshold: 0.1 }
-    );
-
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
-    }
-
-    return () => {
-      if (containerRef.current) {
-        observer.unobserve(containerRef.current);
-      }
-    };
-  }, [index]);
-
+// Simple 3D thumbnail component - always renders for default models
+const ThumbnailCanvas = ({ modelName, emoji }) => {
   return (
-    <div ref={containerRef} style={{ width: '100%', height: '100%' }}>
-      {!isVisible ? (
+    <Canvas camera={{ position: [3, 3, 3], fov: 50 }} style={{ width: '100%', height: '100%' }}>
+      <Suspense fallback={
         <div style={{
           width: '100%',
           height: '100%',
@@ -69,18 +44,14 @@ const LazyThumbnailCanvas = ({ modelName, emoji, index }) => {
         }}>
           {emoji}
         </div>
-      ) : (
-        <Canvas camera={{ position: [3, 3, 3], fov: 50 }} style={{ width: '100%', height: '100%' }}>
-          <Suspense fallback={null}>
-            <ambientLight intensity={1.2} />
-            <directionalLight position={[3, 3, 3]} intensity={1.5} />
-            <directionalLight position={[-2, -2, -1]} intensity={0.5} />
-            <ModelThumbnail modelName={modelName} />
-            <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={2} />
-          </Suspense>
-        </Canvas>
-      )}
-    </div>
+      }>
+        <ambientLight intensity={1.2} />
+        <directionalLight position={[3, 3, 3]} intensity={1.5} />
+        <directionalLight position={[-2, -2, -1]} intensity={0.5} />
+        <ModelThumbnail modelName={modelName} />
+        <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={2} />
+      </Suspense>
+    </Canvas>
   );
 };
 
@@ -290,7 +261,7 @@ const ModelGallery = ({ onSelectModel }) => {
           >
             <div className="model-thumbnail">
               {!model.isImported ? (
-                <LazyThumbnailCanvas modelName={model.name} emoji={model.thumbnail} index={index} />
+                <ThumbnailCanvas modelName={model.name} emoji={model.thumbnail} />
               ) : (
                 <div style={{ 
                   width: '100%', 
