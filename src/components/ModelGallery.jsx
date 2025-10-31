@@ -32,6 +32,22 @@ const ThumbnailCanvas = ({ modelName, emoji, index }) => {
   // Only load 3D models for the first 8 models to avoid WebGL context issues
   const shouldLoad3D = index < 8;
   
+  if (!shouldLoad3D) {
+    return (
+      <div style={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '48px',
+        background: '#252525'
+      }}>
+        {emoji}
+      </div>
+    );
+  }
+
   return (
     <Canvas camera={{ position: [3, 3, 3], fov: 50 }} style={{ width: '100%', height: '100%' }}>
       <Suspense fallback={
@@ -50,22 +66,8 @@ const ThumbnailCanvas = ({ modelName, emoji, index }) => {
         <ambientLight intensity={1.2} />
         <directionalLight position={[3, 3, 3]} intensity={1.5} />
         <directionalLight position={[-2, -2, -1]} intensity={0.5} />
-        {shouldLoad3D ? (
-          <ModelThumbnail modelName={modelName} />
-        ) : (
-          <div style={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '48px',
-            background: '#252525'
-          }}>
-            {emoji}
-          </div>
-        )}
-        <OrbitControls enableZoom={false} enablePan={false} autoRotate={shouldLoad3D} autoRotateSpeed={2} />
+        <ModelThumbnail modelName={modelName} />
+        <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={2} />
       </Suspense>
     </Canvas>
   );
