@@ -26,11 +26,11 @@ body {
 .app-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 10px;
   color: #e0e0e0;
   margin-bottom: 8px;
-  padding: 5px 15px;
+  padding: 5px 0 5px 15px;
   flex-shrink: 0;
   border-bottom: 2px solid #333;
   height: 40px;
@@ -41,6 +41,7 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+  margin-left: auto;
 }
 
 .auth-trigger-btn {
