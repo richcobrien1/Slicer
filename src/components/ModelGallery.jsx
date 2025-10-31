@@ -29,8 +29,8 @@ const ModelThumbnail = ({ modelName }) => {
 
 // Simple 3D thumbnail component - always renders for default models
 const ThumbnailCanvas = ({ modelName, emoji, index }) => {
-  // Only load 3D models for the first 6 models to avoid WebGL context issues
-  const shouldLoad3D = index < 6;
+  // Only load 3D models for the first 8 models to avoid WebGL context issues
+  const shouldLoad3D = index < 8;
   
   return (
     <Canvas camera={{ position: [3, 3, 3], fov: 50 }} style={{ width: '100%', height: '100%' }}>
