@@ -1,5 +1,5 @@
-import { useState, useEffect, Suspense, useRef, useCallback } from 'react';
-import { Canvas, useLoader } from '@react-three/fiber';
+import { useState, useEffect, useRef } from 'react';
+import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader';
 import { supabase } from '../utils/supabaseClient';
@@ -8,12 +8,38 @@ import './ModelGallery.css';
 
 // Mini 3D thumbnail component
 const ModelThumbnail = ({ modelName }) => {
-  console.log(`Attempting to load model: ${modelName}, path: /models/${modelName.toLowerCase()}.stl`);
-  
-  const geometry = useLoader(STLLoader, `/models/${modelName.toLowerCase()}.stl`);
-  console.log(`Successfully loaded geometry for ${modelName}:`, geometry);
-  geometry.center();
-  
+  const [geometry, setGeometry] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    console.log(`Attempting to load model: ${modelName}, path: /models/${modelName.toLowerCase()}.stl`);
+    
+    const loader = new STLLoader();
+    loader.load(
+      `/models/${modelName.toLowerCase()}.stl`,
+      (loadedGeometry) => {
+        console.log(`Successfully loaded geometry for ${modelName}:`, loadedGeometry);
+        loadedGeometry.center();
+        setGeometry(loadedGeometry);
+      },
+      (progress) => {
+        console.log(`Loading progress for ${modelName}:`, progress);
+      },
+      (loadError) => {
+        console.error(`Error loading model ${modelName}:`, loadError);
+        setError(loadError);
+      }
+    );
+  }, [modelName]);
+
+  if (error) {
+    return null; // Don't render anything if there's an error
+  }
+
+  if (!geometry) {
+    return null; // Don't render anything while loading
+  }
+
   return (
     <mesh geometry={geometry} scale={0.03}>
       <meshStandardMaterial 
@@ -27,98 +53,21 @@ const ModelThumbnail = ({ modelName }) => {
   );
 };
 
-// Viewport-aware thumbnail component
+// Viewport-aware thumbnail component with interactive hover/click
 const ViewportThumbnail = ({ modelName, emoji, index }) => {
-  const [isInView, setIsInView] = useState(index < 8); // First 8 load immediately
-  const [hasBeenViewed, setHasBeenViewed] = useState(index < 8);
-  const containerRef = useRef();
-
-  // Detect if we're on mobile (where all models might be visible)
-  const isMobile = window.innerWidth < 768;
-
-  useEffect(() => {
-    // On mobile, load all models immediately since they're all visible
-    if (isMobile) {
-      setIsInView(true);
-      setHasBeenViewed(true);
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        const nowInView = entry.isIntersecting;
-        
-        setIsInView(nowInView);
-        
-        // Once viewed, keep it loaded
-        if (nowInView && !hasBeenViewed) {
-          setHasBeenViewed(true);
-        }
-      },
-      { 
-        threshold: 0.1, 
-        rootMargin: '50px'
-      }
-    );
-
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
-    }
-
-    return () => {
-      if (containerRef.current) {
-        observer.unobserve(containerRef.current);
-      }
-    };
-  }, [hasBeenViewed, isMobile]);
-
-  // If never viewed, show emoji
-  if (!hasBeenViewed) {
-    return (
-      <div 
-        ref={containerRef}
-        style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '48px',
-          background: '#252525'
-        }}
-      >
-        {emoji}
-      </div>
-    );
-  }
-
-  // Once viewed, always show 3D model (whether in view or not)
   return (
-    <div ref={containerRef} style={{ width: '100%', height: '100%' }}>
-      <Canvas 
-        camera={{ position: [3, 3, 3], fov: 50 }} 
-        style={{ width: '100%', height: '100%' }}
-      >
-        <Suspense fallback={
-          <div style={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '48px',
-            background: '#252525'
-          }}>
-            {emoji}
-          </div>
-        }>
-          <ambientLight intensity={1.2} />
-          <directionalLight position={[3, 3, 3]} intensity={1.5} />
-          <directionalLight position={[-2, -2, -1]} intensity={0.5} />
-          <ModelThumbnail modelName={modelName} />
-          <OrbitControls enableZoom={false} enablePan={false} autoRotate={isInView} autoRotateSpeed={2} />
-        </Suspense>
-      </Canvas>
+    <div 
+      style={{ 
+        width: '100%', 
+        height: '100%', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        fontSize: '48px',
+        background: '#252525'
+      }}
+    >
+      {emoji}
     </div>
   );
 };

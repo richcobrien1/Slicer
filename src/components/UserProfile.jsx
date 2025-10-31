@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../utils/supabaseClient';
 import { getUserProfile } from '../utils/modelStorage';
 import { createCheckoutSession } from '../utils/stripe';
+import Avatar from './Avatar';
 import './UserProfile.css';
 
 const UserProfile = ({ onSignOut }) => {
@@ -44,9 +45,15 @@ const UserProfile = ({ onSignOut }) => {
     if (onSignOut) onSignOut();
   };
 
-  const handleAddMember = () => {
-    alert('👥 Team member feature coming soon! This will allow you to collaborate with others on your 3D projects.');
-    setShowMenu(false);
+  const handleUpgrade = async () => {
+    try {
+      setShowMenu(false);
+      alert('⏳ Redirecting to checkout...');
+      await createCheckoutSession();
+    } catch (error) {
+      console.error('Upgrade error:', error);
+      alert('❌ Failed to start checkout. Please try again.');
+    }
   };
 
   const handleUploadAvatar = () => {
@@ -112,19 +119,7 @@ const UserProfile = ({ onSignOut }) => {
   if (!user) return null;
 
   const isPremium = profile?.subscription_tier === 'premium';
-  const userInitial = user.email?.[0]?.toUpperCase() || '?';
   
-  // Get avatar from social providers or use initial
-  const getAvatar = () => {
-    if (user.user_metadata?.avatar_url) {
-      return <img src={user.user_metadata.avatar_url} alt="Avatar" className="profile-avatar-img" />;
-    }
-    if (user.user_metadata?.picture) {
-      return <img src={user.user_metadata.picture} alt="Avatar" className="profile-avatar-img" />;
-    }
-    return userInitial;
-  };
-
   const getDisplayName = () => {
     if (user.user_metadata?.full_name) return user.user_metadata.full_name;
     if (user.user_metadata?.name) return user.user_metadata.name;
@@ -138,10 +133,7 @@ const UserProfile = ({ onSignOut }) => {
           className="profile-button"
           onClick={() => setShowMenu(!showMenu)}
         >
-          <div className="profile-avatar">
-            {getAvatar()}
-          </div>
-          {isPremium && <span className="premium-badge">⭐</span>}
+          <Avatar user={user} size="small" showPremium={isPremium} />
         </button>
         
         <button className="add-member-btn" title="Upload Avatar" onClick={handleUploadAvatar}>
@@ -154,9 +146,7 @@ const UserProfile = ({ onSignOut }) => {
           <div className="profile-backdrop" onClick={() => setShowMenu(false)} />
           <div className="profile-menu">
             <div className="profile-header">
-              <div className="profile-avatar large">
-                {getAvatar()}
-              </div>
+              <Avatar user={user} size="large" />
               <div className="profile-info">
                 <div className="profile-name">{getDisplayName()}</div>
                 <div className="profile-email">{user.email}</div>
