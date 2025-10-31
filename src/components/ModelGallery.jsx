@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense, useRef } from 'react';
+import { useState, useEffect, Suspense, useRef, useCallback } from 'react';
 import { Canvas, useLoader } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader';
@@ -27,37 +27,99 @@ const ModelThumbnail = ({ modelName }) => {
   );
 };
 
-// Simple 3D thumbnail component - renders when visible
-const ThumbnailCanvas = ({ modelName, emoji, index }) => {
-  // Only load 3D models for the first 8 models to avoid WebGL context issues
-  const shouldLoad3D = index < 8;
-  
-  if (!shouldLoad3D) {
+// Viewport-aware thumbnail component
+const ViewportThumbnail = ({ modelName, emoji, index }) => {
+  const [isInView, setIsInView] = useState(index < 8); // First 8 load immediately
+  const [hasBeenViewed, setHasBeenViewed] = useState(index < 8);
+  const containerRef = useRef();
+
+  // Detect if we're on mobile (where all models might be visible)
+  const isMobile = window.innerWidth < 768;
+
+  useEffect(() => {
+    // On mobile, load all models immediately since they're all visible
+    if (isMobile) {
+      setIsInView(true);
+      setHasBeenViewed(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const nowInView = entry.isIntersecting;
+        
+        setIsInView(nowInView);
+        
+        // Once viewed, keep it loaded
+        if (nowInView && !hasBeenViewed) {
+          setHasBeenViewed(true);
+        }
+      },
+      { 
+        threshold: 0.1, 
+        rootMargin: '50px'
+      }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => {
+      if (containerRef.current) {
+        observer.unobserve(containerRef.current);
+      }
+    };
+  }, [hasBeenViewed, isMobile]);
+
+  // If never viewed, show emoji
+  if (!hasBeenViewed) {
     return (
-      <div style={{
-        width: '100%',
-        height: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: '48px',
-        background: '#252525'
-      }}>
+      <div 
+        ref={containerRef}
+        style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '48px',
+          background: '#252525'
+        }}
+      >
         {emoji}
       </div>
     );
   }
 
+  // Once viewed, always show 3D model (whether in view or not)
   return (
-    <Canvas camera={{ position: [3, 3, 3], fov: 50 }} style={{ width: '100%', height: '100%' }}>
-      <Suspense fallback={null}>
-        <ambientLight intensity={1.2} />
-        <directionalLight position={[3, 3, 3]} intensity={1.5} />
-        <directionalLight position={[-2, -2, -1]} intensity={0.5} />
-        <ModelThumbnail modelName={modelName} />
-        <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={2} />
-      </Suspense>
-    </Canvas>
+    <div ref={containerRef} style={{ width: '100%', height: '100%' }}>
+      <Canvas 
+        camera={{ position: [3, 3, 3], fov: 50 }} 
+        style={{ width: '100%', height: '100%' }}
+      >
+        <Suspense fallback={
+          <div style={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '48px',
+            background: '#252525'
+          }}>
+            {emoji}
+          </div>
+        }>
+          <ambientLight intensity={1.2} />
+          <directionalLight position={[3, 3, 3]} intensity={1.5} />
+          <directionalLight position={[-2, -2, -1]} intensity={0.5} />
+          <ModelThumbnail modelName={modelName} />
+          <OrbitControls enableZoom={false} enablePan={false} autoRotate={isInView} autoRotateSpeed={2} />
+        </Suspense>
+      </Canvas>
+    </div>
   );
 };
 
@@ -267,7 +329,7 @@ const ModelGallery = ({ onSelectModel }) => {
           >
             <div className="model-thumbnail">
               {!model.isImported ? (
-                <ThumbnailCanvas modelName={model.name} emoji={model.thumbnail} index={index} />
+                <ViewportThumbnail modelName={model.name} emoji={model.thumbnail} index={index} />
               ) : (
                 <div style={{ 
                   width: '100%', 
