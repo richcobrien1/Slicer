@@ -63,7 +63,7 @@ const ThumbnailCanvas = ({ modelName, emoji, index }) => {
 
 // Lazy loading thumbnail component
 const LazyThumbnailCanvas = ({ modelName, emoji, index }) => {
-  const [isVisible, setIsVisible] = useState(index < 4); // Load first 4 immediately
+  const [isVisible, setIsVisible] = useState(index < 2); // Load first 2 immediately
   const [hasBeenVisible, setHasBeenVisible] = useState(false);
   const ref = useRef();
 
