@@ -34,6 +34,18 @@ const LazyThumbnailCanvas = ({ modelName, emoji }) => {
   const containerRef = useRef(null);
 
   useEffect(() => {
+    // Check if element is initially visible in viewport
+    const checkInitialVisibility = () => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const isInViewport = rect.top < window.innerHeight && rect.bottom > 0;
+        setIsVisible(isInViewport);
+      }
+    };
+
+    // Small delay to let layout settle, then check initial visibility
+    const timer = setTimeout(checkInitialVisibility, 100);
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         setIsVisible(entry.isIntersecting);
@@ -46,6 +58,7 @@ const LazyThumbnailCanvas = ({ modelName, emoji }) => {
     }
 
     return () => {
+      clearTimeout(timer);
       if (containerRef.current) {
         observer.unobserve(containerRef.current);
       }
@@ -67,7 +80,7 @@ const LazyThumbnailCanvas = ({ modelName, emoji }) => {
           {emoji}
         </div>
       ) : (
-        <Canvas camera={{ position: [0, 0, 4], fov: 50 }} style={{ width: '100%', height: '100%' }}>
+        <Canvas camera={{ position: [3, 3, 3], fov: 50 }} style={{ width: '100%', height: '100%' }}>
           <Suspense fallback={null}>
             <ambientLight intensity={1.2} />
             <directionalLight position={[3, 3, 3]} intensity={1.5} />
