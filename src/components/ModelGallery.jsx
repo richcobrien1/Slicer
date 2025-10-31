@@ -34,21 +34,12 @@ const LazyThumbnailCanvas = ({ modelName, emoji }) => {
   const containerRef = useRef(null);
 
   useEffect(() => {
-    // Check if element is initially visible in viewport
-    const checkInitialVisibility = () => {
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        const isInViewport = rect.top < window.innerHeight && rect.bottom > 0;
-        setIsVisible(isInViewport);
-      }
-    };
-
-    // Small delay to let layout settle, then check initial visibility
-    const timer = setTimeout(checkInitialVisibility, 100);
-
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setIsVisible(entry.isIntersecting);
+        // Only hide when element goes out of view, don't show hidden elements
+        if (!entry.isIntersecting) {
+          setIsVisible(false);
+        }
       },
       { threshold: 0.1 }
     );
@@ -58,12 +49,40 @@ const LazyThumbnailCanvas = ({ modelName, emoji }) => {
     }
 
     return () => {
-      clearTimeout(timer);
       if (containerRef.current) {
         observer.unobserve(containerRef.current);
       }
     };
   }, []);
+
+  return (
+    <div ref={containerRef} style={{ width: '100%', height: '100%' }}>
+      {!isVisible ? (
+        <div style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '48px',
+          background: '#252525'
+        }}>
+          {emoji}
+        </div>
+      ) : (
+        <Canvas camera={{ position: [3, 3, 3], fov: 50 }} style={{ width: '100%', height: '100%' }}>
+          <Suspense fallback={null}>
+            <ambientLight intensity={1.2} />
+            <directionalLight position={[3, 3, 3]} intensity={1.5} />
+            <directionalLight position={[-2, -2, -1]} intensity={0.5} />
+            <ModelThumbnail modelName={modelName} />
+            <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={2} />
+          </Suspense>
+        </Canvas>
+      )}
+    </div>
+  );
+};
 
   return (
     <div ref={containerRef} style={{ width: '100%', height: '100%' }}>
