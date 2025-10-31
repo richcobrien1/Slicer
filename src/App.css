@@ -26,15 +26,41 @@ body {
 .app-header {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
   gap: 10px;
   color: #e0e0e0;
   margin-bottom: 8px;
-  padding: 5px 0 5px 15px;
+  padding: 5px 15px;
   flex-shrink: 0;
   border-bottom: 2px solid #333;
   height: 40px;
   max-height: 40px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.auth-trigger-btn {
+  padding: 6px 16px;
+  background: #ff9800;
+  color: #1f1f1f;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.auth-trigger-btn:hover {
+  background: #ffa726;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
 }
 
 .header-icon {

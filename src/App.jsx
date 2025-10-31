@@ -1,17 +1,39 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import ModelGallery from './components/ModelGallery';
 import ModelViewer from './components/ModelViewer';
 import VoiceCustomization from './components/VoiceCustomization';
 import ExportControls from './components/ExportControls';
+import Auth from './components/Auth';
+import UserProfile from './components/UserProfile';
 import { RotatingModelIcon } from './components/RotatingModelIcon';
+import { supabase } from './utils/supabaseClient';
 import './App.css';
 
 function App() {
   const [selectedModel, setSelectedModel] = useState(null);
   const [customizationRequests, setCustomizationRequests] = useState([]);
   const [importedModels, setImportedModels] = useState([]);
+  const [user, setUser] = useState(null);
+  const [showAuth, setShowAuth] = useState(false);
   const viewerRef = useRef(null);
   const galleryRef = useRef(null);
+
+  useEffect(() => {
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        setShowAuth(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleModelSelect = (model) => {
     setSelectedModel(model);
@@ -81,6 +103,8 @@ function App() {
 
   return (
     <div className="app">
+      {showAuth && <Auth onAuthSuccess={() => setShowAuth(false)} />}
+      
       <header className="app-header">
         <div className="header-icon">
           <RotatingModelIcon />
@@ -88,6 +112,15 @@ function App() {
         <div className="header-text">
           <h1>SLICER</h1>
           <p className="tagline">AI AUTOMATED 3D MANUFACTURING</p>
+        </div>
+        <div className="header-actions">
+          {!user ? (
+            <button className="auth-trigger-btn" onClick={() => setShowAuth(true)}>
+              🔓 Sign In
+            </button>
+          ) : (
+            <UserProfile onSignOut={() => setShowAuth(false)} />
+          )}
         </div>
       </header>
 
