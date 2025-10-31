@@ -117,6 +117,39 @@
   transform: translateY(-2px);
 }
 
+.social-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.auth-btn.social {
+  flex: 1;
+  padding: 10px;
+  font-size: 12px;
+  background: #2a2a2a;
+  color: #e0e0e0;
+  border: 1px solid #444;
+}
+
+.auth-btn.social:hover:not(:disabled) {
+  background: #333;
+  border-color: #666;
+  transform: translateY(-1px);
+}
+
+.auth-btn.social.facebook:hover:not(:disabled) {
+  border-color: #1877f2;
+}
+
+.auth-btn.social.linkedin:hover:not(:disabled) {
+  border-color: #0077b5;
+}
+
+.auth-btn.social.twitter:hover:not(:disabled) {
+  border-color: #1da1f2;
+}
+
 .auth-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;

@@ -33,6 +33,16 @@ function App() {
       }
     });
 
+    // Restore selected model from localStorage
+    const savedSelectedModel = localStorage.getItem('selectedModel');
+    if (savedSelectedModel) {
+      try {
+        setSelectedModel(JSON.parse(savedSelectedModel));
+      } catch (error) {
+        console.error('Error restoring selected model:', error);
+      }
+    }
+
     // Check for successful Stripe checkout
     checkCheckoutSuccess().then((result) => {
       if (result) {
@@ -49,6 +59,12 @@ function App() {
 
   const handleModelSelect = (model) => {
     setSelectedModel(model);
+    // Save selected model to localStorage for persistence across refreshes
+    try {
+      localStorage.setItem('selectedModel', JSON.stringify(model));
+    } catch (error) {
+      console.error('Error saving selected model:', error);
+    }
   };
 
   const handleModelImport = (file) => {
@@ -73,6 +89,12 @@ function App() {
     
     // Auto-select the imported model
     setSelectedModel(newModel);
+    // Save selected model to localStorage
+    try {
+      localStorage.setItem('selectedModel', JSON.stringify(newModel));
+    } catch (error) {
+      console.error('Error saving selected model:', error);
+    }
     
     // Notify gallery if it has a ref method
     if (galleryRef.current && galleryRef.current.addImportedModel) {
@@ -85,6 +107,12 @@ function App() {
   const handleViewFile = (tempModel) => {
     // Just set as selected for viewing, doesn't add to library
     setSelectedModel(tempModel);
+    // Save selected model to localStorage
+    try {
+      localStorage.setItem('selectedModel', JSON.stringify(tempModel));
+    } catch (error) {
+      console.error('Error saving selected model:', error);
+    }
   };
 
   const handleCustomization = (instructions) => {

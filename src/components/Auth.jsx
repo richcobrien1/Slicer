@@ -65,6 +65,63 @@ const Auth = ({ onAuthSuccess }) => {
     }
   };
 
+  const handleFacebookAuth = async () => {
+    setLoading(true);
+    setMessage('');
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'facebook',
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      setMessage(`❌ ${error.message}`);
+      setLoading(false);
+    }
+  };
+
+  const handleLinkedInAuth = async () => {
+    setLoading(true);
+    setMessage('');
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'linkedin_oidc',
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      setMessage(`❌ ${error.message}`);
+      setLoading(false);
+    }
+  };
+
+  const handleTwitterAuth = async () => {
+    setLoading(true);
+    setMessage('');
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'twitter',
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      setMessage(`❌ ${error.message}`);
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="auth-container">
       <div className="auth-card">
@@ -118,6 +175,35 @@ const Auth = ({ onAuthSuccess }) => {
         >
           <span>🔐</span> Continue with Google
         </button>
+
+        <div className="social-buttons">
+          <button 
+            type="button" 
+            className="auth-btn social facebook" 
+            onClick={handleFacebookAuth}
+            disabled={loading}
+          >
+            <span>📘</span> Facebook
+          </button>
+
+          <button 
+            type="button" 
+            className="auth-btn social linkedin" 
+            onClick={handleLinkedInAuth}
+            disabled={loading}
+          >
+            <span>💼</span> LinkedIn
+          </button>
+
+          <button 
+            type="button" 
+            className="auth-btn social twitter" 
+            onClick={handleTwitterAuth}
+            disabled={loading}
+          >
+            <span>🐦</span> X (Twitter)
+          </button>
+        </div>
 
         {message && (
           <div className={`auth-message ${message.startsWith('✅') ? 'success' : 'error'}`}>
