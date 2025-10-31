@@ -61,12 +61,12 @@ const ThumbnailCanvas = ({ modelName, emoji, index }) => {
   );
 };
 
-// Lazy loading thumbnail component - loads 2 at a time
+// Lazy loading thumbnail component - loads 2 at a time progressively
 const LazyThumbnailCanvas = ({ modelName, emoji, index, loadTrigger }) => {
-  const [isVisible, setIsVisible] = useState(index < 2); // Load first 2 immediately
+  const [isVisible, setIsVisible] = useState(index < loadTrigger); // Load based on trigger
   
   useEffect(() => {
-    if (loadTrigger && index >= 2 && index < loadTrigger + 2) {
+    if (index < loadTrigger) {
       setIsVisible(true);
     }
   }, [loadTrigger, index]);
@@ -126,16 +126,23 @@ const ModelGallery = ({ onSelectModel }) => {
 
   // Handle scroll to load more thumbnails
   useEffect(() => {
+    let scrollTimeout;
+    
     const handleScroll = () => {
-      // Load 2 more thumbnails when scrolling
-      if (loadedCount < 8) { // Only load up to 8 3D thumbnails total
+      // Debounce scroll events
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        // Load 2 more thumbnails when scrolling, up to maximum of 8
         setLoadedCount(prev => Math.min(prev + 2, 8));
-      }
+      }, 200); // 200ms debounce
     };
 
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [loadedCount]);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      clearTimeout(scrollTimeout);
+    };
+  }, []);
 
   const loadModels = async () => {
     try {
