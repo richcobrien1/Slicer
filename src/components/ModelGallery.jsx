@@ -8,28 +8,30 @@ import './ModelGallery.css';
 
 // Mini 3D thumbnail component
 const ModelThumbnail = ({ modelName }) => {
-  try {
-    const geometry = useLoader(STLLoader, `/models/${modelName.toLowerCase()}.stl`);
-    geometry.center();
-    
-    return (
-      <mesh geometry={geometry} scale={0.03}>
-        <meshStandardMaterial 
-          color="#6B6B6B" 
-          metalness={0.4} 
-          roughness={0.6} 
-          emissive="#3A3A3A"
-          emissiveIntensity={0.2}
-        />
-      </mesh>
-    );
-  } catch (error) {
-    return null;
-  }
+  console.log(`Attempting to load model: ${modelName}, path: /models/${modelName.toLowerCase()}.stl`);
+  
+  const geometry = useLoader(STLLoader, `/models/${modelName.toLowerCase()}.stl`);
+  console.log(`Successfully loaded geometry for ${modelName}:`, geometry);
+  geometry.center();
+  
+  return (
+    <mesh geometry={geometry} scale={0.03}>
+      <meshStandardMaterial 
+        color="#6B6B6B" 
+        metalness={0.4} 
+        roughness={0.6} 
+        emissive="#3A3A3A"
+        emissiveIntensity={0.2}
+      />
+    </mesh>
+  );
 };
 
 // Simple 3D thumbnail component - always renders for default models
-const ThumbnailCanvas = ({ modelName, emoji }) => {
+const ThumbnailCanvas = ({ modelName, emoji, index }) => {
+  // Only load 3D models for the first 6 models to avoid WebGL context issues
+  const shouldLoad3D = index < 6;
+  
   return (
     <Canvas camera={{ position: [3, 3, 3], fov: 50 }} style={{ width: '100%', height: '100%' }}>
       <Suspense fallback={
@@ -48,8 +50,22 @@ const ThumbnailCanvas = ({ modelName, emoji }) => {
         <ambientLight intensity={1.2} />
         <directionalLight position={[3, 3, 3]} intensity={1.5} />
         <directionalLight position={[-2, -2, -1]} intensity={0.5} />
-        <ModelThumbnail modelName={modelName} />
-        <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={2} />
+        {shouldLoad3D ? (
+          <ModelThumbnail modelName={modelName} />
+        ) : (
+          <div style={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '48px',
+            background: '#252525'
+          }}>
+            {emoji}
+          </div>
+        )}
+        <OrbitControls enableZoom={false} enablePan={false} autoRotate={shouldLoad3D} autoRotateSpeed={2} />
       </Suspense>
     </Canvas>
   );
@@ -261,7 +277,7 @@ const ModelGallery = ({ onSelectModel }) => {
           >
             <div className="model-thumbnail">
               {!model.isImported ? (
-                <ThumbnailCanvas modelName={model.name} emoji={model.thumbnail} />
+                <ThumbnailCanvas modelName={model.name} emoji={model.thumbnail} index={index} />
               ) : (
                 <div style={{ 
                   width: '100%', 
