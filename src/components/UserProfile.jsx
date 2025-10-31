@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../utils/supabaseClient';
 import { getUserProfile } from '../utils/modelStorage';
+import { createCheckoutSession } from '../utils/stripe';
 import './UserProfile.css';
 
 const UserProfile = ({ onSignOut }) => {
@@ -43,6 +44,16 @@ const UserProfile = ({ onSignOut }) => {
     if (onSignOut) onSignOut();
   };
 
+  const handleUpgrade = async () => {
+    try {
+      setShowMenu(false);
+      await createCheckoutSession();
+    } catch (error) {
+      alert('❌ Error starting upgrade process. Please try again.');
+      console.error('Upgrade error:', error);
+    }
+  };
+
   if (!user) return null;
 
   const isPremium = profile?.subscription_tier === 'premium';
@@ -79,7 +90,7 @@ const UserProfile = ({ onSignOut }) => {
             <div className="profile-divider" />
 
             {!isPremium && (
-              <button className="menu-item upgrade">
+              <button className="menu-item upgrade" onClick={handleUpgrade}>
                 <span className="menu-icon">⭐</span>
                 <div>
                   <div className="menu-label">Upgrade to Premium</div>

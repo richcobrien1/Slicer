@@ -7,6 +7,7 @@ import Auth from './components/Auth';
 import UserProfile from './components/UserProfile';
 import { RotatingModelIcon } from './components/RotatingModelIcon';
 import { supabase } from './utils/supabaseClient';
+import { checkCheckoutSuccess } from './utils/stripe';
 import './App.css';
 
 function App() {
@@ -29,6 +30,17 @@ function App() {
       setUser(session?.user ?? null);
       if (session?.user) {
         setShowAuth(false);
+      }
+    });
+
+    // Check for successful Stripe checkout
+    checkCheckoutSuccess().then((result) => {
+      if (result) {
+        alert('🎉 Welcome to Premium! Your subscription is now active.');
+        // Reload gallery to fetch cloud models
+        if (galleryRef.current?.loadModels) {
+          galleryRef.current.loadModels();
+        }
       }
     });
 
