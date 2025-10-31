@@ -159,7 +159,7 @@ const ModelViewer = forwardRef(({ selectedModel, onViewFile }, ref) => {
         {tempViewModel && <span className="temp-badge">Viewing only</span>}
       </div>
       <div className="canvas-container">
-        <Canvas camera={{ position: [0, 0, 5], fov: 50 }}>
+        <Canvas camera={{ position: [3, 3, 3], fov: 50 }}>
           <Suspense fallback={null}>
             <ambientLight intensity={0.6} />
             <directionalLight position={[5, 5, 5]} intensity={1.2} color="#ffffff" />
