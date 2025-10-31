@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useRef } from 'react';
 import { Canvas, useLoader } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader';
@@ -27,7 +27,7 @@ const ModelThumbnail = ({ modelName }) => {
   );
 };
 
-// Simple 3D thumbnail component - always renders for default models
+// Simple 3D thumbnail component - renders when visible
 const ThumbnailCanvas = ({ modelName, emoji, index }) => {
   // Only load 3D models for the first 8 models to avoid WebGL context issues
   const shouldLoad3D = index < 8;
@@ -58,6 +58,55 @@ const ThumbnailCanvas = ({ modelName, emoji, index }) => {
         <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={2} />
       </Suspense>
     </Canvas>
+  );
+};
+
+// Lazy loading thumbnail component
+const LazyThumbnailCanvas = ({ modelName, emoji, index }) => {
+  const [isVisible, setIsVisible] = useState(index < 4); // Load first 4 immediately
+  const [hasBeenVisible, setHasBeenVisible] = useState(false);
+  const ref = useRef();
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasBeenVisible) {
+          setIsVisible(true);
+          setHasBeenVisible(true);
+        }
+      },
+      { threshold: 0.1, rootMargin: '50px' }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => {
+      if (ref.current) {
+        observer.unobserve(ref.current);
+      }
+    };
+  }, [hasBeenVisible]);
+
+  return (
+    <div ref={ref} style={{ width: '100%', height: '100%' }}>
+      {isVisible ? (
+        <ThumbnailCanvas modelName={modelName} emoji={emoji} index={index} />
+      ) : (
+        <div style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '48px',
+          background: '#252525'
+        }}>
+          {emoji}
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -267,7 +316,7 @@ const ModelGallery = ({ onSelectModel }) => {
           >
             <div className="model-thumbnail">
               {!model.isImported ? (
-                <ThumbnailCanvas modelName={model.name} emoji={model.thumbnail} index={index} />
+                <LazyThumbnailCanvas modelName={model.name} emoji={model.thumbnail} index={index} />
               ) : (
                 <div style={{ 
                   width: '100%', 
