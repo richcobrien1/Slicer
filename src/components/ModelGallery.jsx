@@ -30,16 +30,20 @@ const ModelThumbnail = ({ modelName }) => {
 
 // Lazy-loaded 3D thumbnail with Intersection Observer
 const LazyThumbnailCanvas = ({ modelName, emoji }) => {
-  const [isVisible, setIsVisible] = useState(true); // Start visible by default
+  const [isVisible, setIsVisible] = useState(false); // Start hidden, let observer detect
   const containerRef = useRef(null);
 
   useEffect(() => {
+    // Check initial visibility
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const initiallyVisible = rect.top < window.innerHeight && rect.bottom > 0;
+      setIsVisible(initiallyVisible);
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // Only hide when element goes out of view, don't show hidden elements
-        if (!entry.isIntersecting) {
-          setIsVisible(false);
-        }
+        setIsVisible(entry.isIntersecting);
       },
       { threshold: 0.1 }
     );
