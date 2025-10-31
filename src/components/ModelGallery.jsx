@@ -30,7 +30,7 @@ const ModelThumbnail = ({ modelName }) => {
 
 // Lazy-loaded 3D thumbnail with Intersection Observer
 const LazyThumbnailCanvas = ({ modelName, emoji }) => {
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(true); // Start visible by default
   const containerRef = useRef(null);
 
   useEffect(() => {
