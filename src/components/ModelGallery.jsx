@@ -29,18 +29,14 @@ const ModelThumbnail = ({ modelName }) => {
 };
 
 // Lazy-loaded 3D thumbnail with Intersection Observer
-const LazyThumbnailCanvas = ({ modelName, emoji }) => {
-  const [isVisible, setIsVisible] = useState(false); // Start hidden, let observer detect
+const LazyThumbnailCanvas = ({ modelName, emoji, index }) => {
+  const [isVisible, setIsVisible] = useState(() => {
+    // Show first 8 thumbnails immediately (assuming grid layout)
+    return index < 8;
+  });
   const containerRef = useRef(null);
 
   useEffect(() => {
-    // Check initial visibility
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      const initiallyVisible = rect.top < window.innerHeight && rect.bottom > 0;
-      setIsVisible(initiallyVisible);
-    }
-
     const observer = new IntersectionObserver(
       ([entry]) => {
         setIsVisible(entry.isIntersecting);
@@ -57,7 +53,7 @@ const LazyThumbnailCanvas = ({ modelName, emoji }) => {
         observer.unobserve(containerRef.current);
       }
     };
-  }, []);
+  }, [index]);
 
   return (
     <div ref={containerRef} style={{ width: '100%', height: '100%' }}>
@@ -286,7 +282,7 @@ const ModelGallery = ({ onSelectModel }) => {
       
       {/* Model Grid */}
       <div className="gallery-grid">
-        {models.map((model) => (
+        {models.map((model, index) => (
           <div
             key={model.id}
             className={`model-card ${selectedId === model.id ? 'selected' : ''}`}
@@ -294,7 +290,7 @@ const ModelGallery = ({ onSelectModel }) => {
           >
             <div className="model-thumbnail">
               {!model.isImported ? (
-                <LazyThumbnailCanvas modelName={model.name} emoji={model.thumbnail} />
+                <LazyThumbnailCanvas modelName={model.name} emoji={model.thumbnail} index={index} />
               ) : (
                 <div style={{ 
                   width: '100%', 
