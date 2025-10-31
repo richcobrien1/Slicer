@@ -55,6 +55,11 @@ insert into storage.buckets (id, name, public)
 values ('stl-files', 'stl-files', false)
 on conflict (id) do nothing;
 
+-- Create storage bucket for user avatars
+insert into storage.buckets (id, name, public)
+values ('avatars', 'avatars', true)
+on conflict (id) do nothing;
+
 -- Storage policies
 create policy "Users can upload own STL files"
   on storage.objects for insert
@@ -76,6 +81,32 @@ create policy "Users can delete own STL files"
     bucket_id = 'stl-files' and
     auth.uid()::text = (storage.foldername(name))[1]
   );
+
+-- Avatar storage policies
+create policy "Users can upload own avatars"
+  on storage.objects for insert
+  with check (
+    bucket_id = 'avatars' and
+    auth.uid()::text = (storage.foldername(name))[1]
+  );
+
+create policy "Users can update own avatars"
+  on storage.objects for update
+  using (
+    bucket_id = 'avatars' and
+    auth.uid()::text = (storage.foldername(name))[1]
+  );
+
+create policy "Users can delete own avatars"
+  on storage.objects for delete
+  using (
+    bucket_id = 'avatars' and
+    auth.uid()::text = (storage.foldername(name))[1]
+  );
+
+create policy "Anyone can view avatars"
+  on storage.objects for select
+  using (bucket_id = 'avatars');
 
 -- Function to create profile on signup
 create or replace function public.handle_new_user()

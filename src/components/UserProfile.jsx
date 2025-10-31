@@ -49,6 +49,55 @@ const UserProfile = ({ onSignOut }) => {
     setShowMenu(false);
   };
 
+  const handleUploadAvatar = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        try {
+          setShowMenu(false);
+          alert('⏳ Uploading avatar...');
+          
+          // Upload to Supabase storage
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${user.id}/avatar.${fileExt}`;
+          
+          const { data, error } = await supabase.storage
+            .from('avatars')
+            .upload(fileName, file, {
+              cacheControl: '3600',
+              upsert: true
+            });
+
+          if (error) throw error;
+
+          // Get public URL
+          const { data: { publicUrl } } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(fileName);
+
+          // Update user metadata
+          const { error: updateError } = await supabase.auth.updateUser({
+            data: { avatar_url: publicUrl }
+          });
+
+          if (updateError) throw updateError;
+
+          alert('✅ Avatar uploaded successfully!');
+          
+          // Reload user data
+          loadUser();
+        } catch (error) {
+          console.error('Avatar upload error:', error);
+          alert('❌ Failed to upload avatar. Please try again.');
+        }
+      }
+    };
+    input.click();
+  };
+
   if (!user) return null;
 
   const isPremium = profile?.subscription_tier === 'premium';
@@ -84,7 +133,7 @@ const UserProfile = ({ onSignOut }) => {
           {isPremium && <span className="premium-badge">⭐</span>}
         </button>
         
-        <button className="add-member-btn" title="Add Team Member">
+        <button className="add-member-btn" title="Upload Avatar" onClick={handleUploadAvatar}>
           <span>+</span>
         </button>
       </div>
@@ -118,11 +167,11 @@ const UserProfile = ({ onSignOut }) => {
               </button>
             )}
 
-            <button className="menu-item" onClick={handleAddMember}>
-              <span className="menu-icon">👥</span>
+            <button className="menu-item" onClick={handleUploadAvatar}>
+              <span className="menu-icon">�</span>
               <div>
-                <div className="menu-label">Add Team Member</div>
-                <div className="menu-desc">Collaborate on projects</div>
+                <div className="menu-label">Upload Avatar</div>
+                <div className="menu-desc">Change your profile photo</div>
               </div>
             </button>
 
