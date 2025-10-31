@@ -61,37 +61,6 @@ const ThumbnailCanvas = ({ modelName, emoji, index }) => {
   );
 };
 
-// Lazy loading thumbnail component - loads 2 at a time progressively
-const LazyThumbnailCanvas = ({ modelName, emoji, index, loadTrigger }) => {
-  const [isVisible, setIsVisible] = useState(index < loadTrigger); // Load based on trigger
-  
-  useEffect(() => {
-    if (index < loadTrigger) {
-      setIsVisible(true);
-    }
-  }, [loadTrigger, index]);
-
-  return (
-    <div style={{ width: '100%', height: '100%' }}>
-      {isVisible ? (
-        <ThumbnailCanvas modelName={modelName} emoji={emoji} index={index} />
-      ) : (
-        <div style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '48px',
-          background: '#252525'
-        }}>
-          {emoji}
-        </div>
-      )}
-    </div>
-  );
-};
-
 const ModelGallery = ({ onSelectModel }) => {
   // Default models
   const defaultModels = [
@@ -117,31 +86,10 @@ const ModelGallery = ({ onSelectModel }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [loadedCount, setLoadedCount] = useState(2); // Start with 2 loaded
 
   // Load models on mount
   useEffect(() => {
     loadModels();
-  }, []);
-
-  // Handle scroll to load more thumbnails
-  useEffect(() => {
-    let scrollTimeout;
-    
-    const handleScroll = () => {
-      // Debounce scroll events
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => {
-        // Load 2 more thumbnails when scrolling, up to maximum of 8
-        setLoadedCount(prev => Math.min(prev + 2, 8));
-      }, 200); // 200ms debounce
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      clearTimeout(scrollTimeout);
-    };
   }, []);
 
   const loadModels = async () => {
@@ -319,7 +267,7 @@ const ModelGallery = ({ onSelectModel }) => {
           >
             <div className="model-thumbnail">
               {!model.isImported ? (
-                <LazyThumbnailCanvas modelName={model.name} emoji={model.thumbnail} index={index} loadTrigger={loadedCount} />
+                <ThumbnailCanvas modelName={model.name} emoji={model.thumbnail} index={index} />
               ) : (
                 <div style={{ 
                   width: '100%', 
