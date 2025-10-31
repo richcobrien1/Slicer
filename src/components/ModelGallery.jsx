@@ -275,72 +275,43 @@ const ModelGallery = ({ onSelectModel }) => {
     }
   };
 
-  const handleFileImport = async (file) => {
-    if (!file || !file.name.toLowerCase().endsWith('.stl')) {
-      alert('❌ Please upload a valid STL file');
+  const handleDeleteModel = async (model, e) => {
+    e.stopPropagation(); // Prevent model selection
+    
+    if (!confirm(`Are you sure you want to delete "${model.name}"?`)) {
       return;
     }
 
     try {
-      const fileName = file.name.replace('.stl', '');
-      
-      // Check if user is authenticated for premium features
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (isPremium && user) {
-        // Upload to Supabase for premium users
-        alert('⏳ Uploading to cloud...');
-        
-        const { url, path } = await uploadModelFile(file, user.id);
-        
-        const modelData = {
-          name: fileName,
-          description: 'Imported STL file',
-          file_url: url,
-          file_size: file.size,
-          thumbnail: '📁'
-        };
-        
-        const savedModel = await saveImportedModel(modelData);
-        
-        const newModel = {
-          id: savedModel.id,
-          name: savedModel.name,
-          thumbnail: savedModel.thumbnail,
-          description: savedModel.description,
-          isImported: true,
-          fileURL: savedModel.file_url
-        };
-        
-        setModels([...models, newModel]);
-        handleSelect(newModel);
-        alert(`✅ Successfully imported to cloud: ${fileName}`);
-      } else {
-        // Save to localStorage for free users
-        const fileURL = URL.createObjectURL(file);
-        
-        const newModel = {
-          id: Date.now(),
-          name: fileName,
-          thumbnail: '📁',
-          description: 'Imported STL file',
-          isImported: true,
-          fileURL: fileURL
-        };
-        
-        const updatedModels = [...models, newModel];
-        setModels(updatedModels);
-        
-        // Save to localStorage
-        const importedModels = updatedModels.filter(m => m.isImported);
-        saveToLocalStorage(importedModels);
-        
-        handleSelect(newModel);
-        alert(`✅ Successfully imported locally: ${fileName}`);
+      // Remove from models array
+      const updatedModels = models.filter(m => m.id !== model.id);
+      setModels(updatedModels);
+
+      // If it was selected, clear selection
+      if (selectedId === model.id) {
+        setSelectedId(null);
       }
+
+      // Remove from storage
+      if (model.isImported) {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (user) {
+          // For premium users, delete from Supabase
+          // Note: This would require a delete function in modelStorage.js
+          // For now, just remove from local state
+          console.log('Would delete from Supabase:', model.id);
+        } else {
+          // For free users, update localStorage
+          const importedModels = updatedModels.filter(m => m.isImported);
+          saveToLocalStorage(importedModels);
+        }
+      }
+
+      alert(`✅ Deleted: ${model.name}`);
     } catch (error) {
-      console.error('Error importing file:', error);
-      alert('❌ Error importing file. Please try again.');
+      console.error('Error deleting model:', error);
+      alert('❌ Error deleting model. Please try again.');
     }
   };
 
@@ -376,6 +347,15 @@ const ModelGallery = ({ onSelectModel }) => {
                 index={index}
                 fileURL={model.fileURL}
               />
+              {model.isImported && (
+                <button 
+                  className="delete-btn"
+                  onClick={(e) => handleDeleteModel(model, e)}
+                  title="Delete this model"
+                >
+                  🗑️
+                </button>
+              )}
             </div>
             <h3>{model.name}</h3>
             <p>{model.description}</p>

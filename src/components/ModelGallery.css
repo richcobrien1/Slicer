@@ -113,6 +113,35 @@
   border-radius: 4px;
   overflow: hidden;
   flex-shrink: 0;
+  position: relative;
+}
+
+.delete-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(220, 53, 69, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  font-size: 12px;
+  z-index: 10;
+}
+
+.model-card:hover .delete-btn {
+  opacity: 1;
+}
+
+.delete-btn:hover {
+  background: rgba(220, 53, 69, 1);
+  transform: scale(1.1);
 }
 
 .model-card h3 {
