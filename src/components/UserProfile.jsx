@@ -64,6 +64,7 @@ const UserProfile = ({ onSignOut }) => {
           const fileExt = file.name.split('.').pop();
           const fileName = `${user.id}/avatar.${fileExt}`;
           
+          console.log('Uploading file:', fileName);
           const { data, error } = await supabase.storage
             .from('avatars')
             .upload(fileName, file, {
@@ -71,19 +72,29 @@ const UserProfile = ({ onSignOut }) => {
               upsert: true
             });
 
-          if (error) throw error;
+          if (error) {
+            console.error('Upload error:', error);
+            throw new Error(`Upload failed: ${error.message}`);
+          }
+
+          console.log('Upload successful:', data);
 
           // Get public URL
           const { data: { publicUrl } } = supabase.storage
             .from('avatars')
             .getPublicUrl(fileName);
 
+          console.log('Public URL:', publicUrl);
+
           // Update user metadata
           const { error: updateError } = await supabase.auth.updateUser({
             data: { avatar_url: publicUrl }
           });
 
-          if (updateError) throw updateError;
+          if (updateError) {
+            console.error('Update user error:', updateError);
+            throw new Error(`Failed to update profile: ${updateError.message}`);
+          }
 
           alert('✅ Avatar uploaded successfully!');
           
@@ -91,7 +102,7 @@ const UserProfile = ({ onSignOut }) => {
           loadUser();
         } catch (error) {
           console.error('Avatar upload error:', error);
-          alert('❌ Failed to upload avatar. Please try again.');
+          alert(`❌ ${error.message || 'Failed to upload avatar. Please try again.'}`);
         }
       }
     };
@@ -168,7 +179,7 @@ const UserProfile = ({ onSignOut }) => {
             )}
 
             <button className="menu-item" onClick={handleUploadAvatar}>
-              <span className="menu-icon">�</span>
+              <span className="menu-icon">📸</span>
               <div>
                 <div className="menu-label">Upload Avatar</div>
                 <div className="menu-desc">Change your profile photo</div>
