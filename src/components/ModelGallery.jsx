@@ -7,16 +7,18 @@ import { uploadModelFile, saveImportedModel, getImportedModels, isPremiumUser } 
 import './ModelGallery.css';
 
 // Mini 3D thumbnail component
-const ModelThumbnail = ({ modelName }) => {
+const ModelThumbnail = ({ modelName, fileURL }) => {
   const [geometry, setGeometry] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    console.log(`Attempting to load model: ${modelName}, path: /models/${modelName.toLowerCase()}.stl`);
+    // Use fileURL for imported models, otherwise use default path
+    const modelPath = fileURL || `/models/${modelName.toLowerCase()}.stl`;
+    console.log(`Attempting to load model: ${modelName}, path: ${modelPath}`);
     
     const loader = new STLLoader();
     loader.load(
-      `/models/${modelName.toLowerCase()}.stl`,
+      modelPath,
       (loadedGeometry) => {
         console.log(`Successfully loaded geometry for ${modelName}:`, loadedGeometry);
         loadedGeometry.center();
@@ -30,7 +32,7 @@ const ModelThumbnail = ({ modelName }) => {
         setError(loadError);
       }
     );
-  }, [modelName]);
+  }, [modelName, fileURL]);
 
   if (error) {
     return null; // Don't render anything if there's an error
@@ -54,20 +56,111 @@ const ModelThumbnail = ({ modelName }) => {
 };
 
 // Viewport-aware thumbnail component with interactive hover/click
-const ViewportThumbnail = ({ modelName, emoji, index }) => {
+const ViewportThumbnail = ({ modelName, emoji, index, fileURL }) => {
+  const [isInView, setIsInView] = useState(index < 8); // First 8 load immediately
+  const [hasBeenViewed, setHasBeenViewed] = useState(index < 8);
+  const [isInteractive, setIsInteractive] = useState(false);
+  const containerRef = useRef();
+
+  // Detect if we're on mobile (where all models might be visible)
+  const isMobile = window.innerWidth < 768;
+
+  useEffect(() => {
+    // On mobile, load all models immediately since they're all visible
+    if (isMobile) {
+      setIsInView(true);
+      setHasBeenViewed(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const nowInView = entry.isIntersecting;
+        
+        setIsInView(nowInView);
+        
+        // Once viewed, keep it loaded
+        if (nowInView && !hasBeenViewed) {
+          setHasBeenViewed(true);
+        }
+      },
+      { 
+        threshold: 0.1, 
+        rootMargin: '50px'
+      }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => {
+      if (containerRef.current) {
+        observer.unobserve(containerRef.current);
+      }
+    };
+  }, [hasBeenViewed, isMobile]);
+
+  // If never viewed, show emoji
+  if (!hasBeenViewed) {
+    return (
+      <div 
+        ref={containerRef}
+        style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '48px',
+          background: '#252525'
+        }}
+      >
+        {emoji}
+      </div>
+    );
+  }
+
+  // Once viewed, show 3D model with interactive controls
   return (
     <div 
-      style={{ 
-        width: '100%', 
-        height: '100%', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        fontSize: '48px',
-        background: '#252525'
-      }}
+      ref={containerRef} 
+      style={{ width: '100%', height: '100%' }}
+      onMouseEnter={() => setIsInteractive(true)}
+      onMouseLeave={() => setIsInteractive(false)}
+      onClick={() => setIsInteractive(!isInteractive)}
     >
-      {emoji}
+      <Canvas 
+        camera={{ 
+          position: isInteractive ? [3, 3, 3] : [2, 2, 2], 
+          fov: 50 
+        }} 
+        style={{ width: '100%', height: '100%' }}
+      >
+        <ambientLight intensity={1.2} />
+        <directionalLight position={[3, 3, 3]} intensity={1.5} />
+        <directionalLight position={[-2, -2, -1]} intensity={0.5} />
+        <ModelThumbnail modelName={modelName} fileURL={fileURL} />
+        {isInteractive ? (
+          <OrbitControls 
+            enableZoom={true} 
+            enablePan={true} 
+            enableRotate={true} 
+            autoRotate={false}
+            maxDistance={5}
+            minDistance={1}
+          />
+        ) : (
+          <OrbitControls 
+            enableZoom={false} 
+            enablePan={false} 
+            enableRotate={false} 
+            autoRotate={true} 
+            autoRotateSpeed={0.5}
+            target={[0, 0, 0]}
+          />
+        )}
+      </Canvas>
     </div>
   );
 };
@@ -277,21 +370,12 @@ const ModelGallery = ({ onSelectModel }) => {
             onClick={() => handleSelect(model)}
           >
             <div className="model-thumbnail">
-              {!model.isImported ? (
-                <ViewportThumbnail modelName={model.name} emoji={model.thumbnail} index={index} />
-              ) : (
-                <div style={{ 
-                  width: '100%', 
-                  height: '100%', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  fontSize: '48px',
-                  background: '#252525'
-                }}>
-                  {model.thumbnail}
-                </div>
-              )}
+              <ViewportThumbnail 
+                modelName={model.name} 
+                emoji={model.thumbnail} 
+                index={index}
+                fileURL={model.fileURL}
+              />
             </div>
             <h3>{model.name}</h3>
             <p>{model.description}</p>
