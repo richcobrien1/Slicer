@@ -61,36 +61,18 @@ const ThumbnailCanvas = ({ modelName, emoji, index }) => {
   );
 };
 
-// Lazy loading thumbnail component
-const LazyThumbnailCanvas = ({ modelName, emoji, index }) => {
+// Lazy loading thumbnail component - loads 2 at a time
+const LazyThumbnailCanvas = ({ modelName, emoji, index, loadTrigger }) => {
   const [isVisible, setIsVisible] = useState(index < 2); // Load first 2 immediately
-  const [hasBeenVisible, setHasBeenVisible] = useState(false);
-  const ref = useRef();
-
+  
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !hasBeenVisible) {
-          setIsVisible(true);
-          setHasBeenVisible(true);
-        }
-      },
-      { threshold: 0.1, rootMargin: '50px' }
-    );
-
-    if (ref.current) {
-      observer.observe(ref.current);
+    if (loadTrigger && index >= 2 && index < loadTrigger + 2) {
+      setIsVisible(true);
     }
-
-    return () => {
-      if (ref.current) {
-        observer.unobserve(ref.current);
-      }
-    };
-  }, [hasBeenVisible]);
+  }, [loadTrigger, index]);
 
   return (
-    <div ref={ref} style={{ width: '100%', height: '100%' }}>
+    <div style={{ width: '100%', height: '100%' }}>
       {isVisible ? (
         <ThumbnailCanvas modelName={modelName} emoji={emoji} index={index} />
       ) : (
@@ -135,11 +117,25 @@ const ModelGallery = ({ onSelectModel }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadedCount, setLoadedCount] = useState(2); // Start with 2 loaded
 
   // Load models on mount
   useEffect(() => {
     loadModels();
   }, []);
+
+  // Handle scroll to load more thumbnails
+  useEffect(() => {
+    const handleScroll = () => {
+      // Load 2 more thumbnails when scrolling
+      if (loadedCount < 8) { // Only load up to 8 3D thumbnails total
+        setLoadedCount(prev => Math.min(prev + 2, 8));
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [loadedCount]);
 
   const loadModels = async () => {
     try {
@@ -316,7 +312,7 @@ const ModelGallery = ({ onSelectModel }) => {
           >
             <div className="model-thumbnail">
               {!model.isImported ? (
-                <LazyThumbnailCanvas modelName={model.name} emoji={model.thumbnail} index={index} />
+                <LazyThumbnailCanvas modelName={model.name} emoji={model.thumbnail} index={index} loadTrigger={loadedCount} />
               ) : (
                 <div style={{ 
                   width: '100%', 
