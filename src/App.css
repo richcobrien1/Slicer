@@ -10,6 +10,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .app {
@@ -21,6 +23,7 @@ body {
   flex-direction: column;
   overflow: hidden;
   box-sizing: border-box;
+  position: relative;
 }
 
 .app-header {
@@ -245,24 +248,29 @@ body {
 }
 
 @media (max-width: 1024px) {
+  body {
+    overflow: scroll;
+    position: relative;
+  }
+
   .app {
     height: auto;
     min-height: 100vh;
-    overflow: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: visible;
+    position: relative;
   }
 
   .app-container {
     grid-template-columns: 1fr;
-    overflow: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: visible;
   }
 
   .left-panel,
   .middle-panel,
   .right-panel {
     overflow-y: visible;
-    -webkit-overflow-scrolling: touch;
+    height: auto;
+    min-height: auto;
   }
 
   .app-header h1 {
@@ -275,10 +283,16 @@ body {
 }
 
 @media (max-width: 768px) {
+  body {
+    overflow: scroll;
+    -webkit-overflow-scrolling: touch;
+    height: auto;
+  }
+
   .app {
     padding: 10px;
-    overflow-y: scroll;
-    -webkit-overflow-scrolling: touch;
+    overflow: visible;
+    height: auto;
   }
 
   .app-header {
@@ -297,9 +311,17 @@ body {
   .left-panel,
   .right-panel {
     padding: 15px;
+    overflow: visible;
+    height: auto;
+  }
+  
+  .middle-panel {
+    overflow: visible;
+    height: auto;
   }
   
   .gallery-grid {
-    -webkit-overflow-scrolling: touch;
+    overflow: visible;
+    height: auto;
   }
 }

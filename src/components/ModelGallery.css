@@ -77,8 +77,6 @@
   flex: 1;
   overflow-y: auto;
   padding-right: 5px;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
 }
 
 .model-card {
@@ -174,17 +172,16 @@
   .gallery-grid {
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     gap: 15px;
-    overflow-y: scroll;
-    -webkit-overflow-scrolling: touch;
+    overflow: visible;
+    height: auto;
   }
 
   .model-thumbnail {
     font-size: 36px;
-    touch-action: none;
   }
 
   .model-card {
-    touch-action: pan-y;
+    touch-action: auto;
   }
 
   .model-card h3 {
