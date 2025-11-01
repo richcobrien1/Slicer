@@ -249,17 +249,20 @@ body {
     height: auto;
     min-height: 100vh;
     overflow: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .app-container {
     grid-template-columns: 1fr;
     overflow: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .left-panel,
   .middle-panel,
   .right-panel {
     overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
   }
 
   .app-header h1 {
@@ -274,6 +277,8 @@ body {
 @media (max-width: 768px) {
   .app {
     padding: 10px;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
   }
 
   .app-header {
@@ -292,5 +297,9 @@ body {
   .left-panel,
   .right-panel {
     padding: 15px;
+  }
+  
+  .gallery-grid {
+    -webkit-overflow-scrolling: touch;
   }
 }
