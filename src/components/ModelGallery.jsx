@@ -59,7 +59,7 @@ const ModelThumbnail = ({ modelName, fileURL }) => {
 const ViewportThumbnail = ({ modelName, emoji, index, fileURL }) => {
   const [isInView, setIsInView] = useState(index < 8); // First 8 load immediately
   const [hasBeenViewed, setHasBeenViewed] = useState(index < 8);
-  const [isInteractive, setIsInteractive] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const containerRef = useRef();
 
   // Detect if we're on mobile (where all models might be visible)
@@ -101,7 +101,7 @@ const ViewportThumbnail = ({ modelName, emoji, index, fileURL }) => {
     };
   }, [hasBeenViewed, isMobile]);
 
-  // If never viewed, show emoji
+  // If never viewed, show empty background
   if (!hasBeenViewed) {
     return (
       <div 
@@ -109,15 +109,9 @@ const ViewportThumbnail = ({ modelName, emoji, index, fileURL }) => {
         style={{
           width: '100%',
           height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '48px',
           background: '#252525'
         }}
-      >
-        {emoji}
-      </div>
+      />
     );
   }
 
@@ -126,13 +120,12 @@ const ViewportThumbnail = ({ modelName, emoji, index, fileURL }) => {
     <div 
       ref={containerRef} 
       style={{ width: '100%', height: '100%' }}
-      onMouseEnter={() => setIsInteractive(true)}
-      onMouseLeave={() => setIsInteractive(false)}
-      onClick={() => setIsInteractive(!isInteractive)}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       <Canvas 
         camera={{ 
-          position: isInteractive ? [3, 3, 3] : [2, 2, 2], 
+          position: [2, 2, 2], 
           fov: 50 
         }} 
         style={{ width: '100%', height: '100%' }}
@@ -141,25 +134,16 @@ const ViewportThumbnail = ({ modelName, emoji, index, fileURL }) => {
         <directionalLight position={[3, 3, 3]} intensity={1.5} />
         <directionalLight position={[-2, -2, -1]} intensity={0.5} />
         <ModelThumbnail modelName={modelName} fileURL={fileURL} />
-        {isInteractive ? (
-          <OrbitControls 
-            enableZoom={true} 
-            enablePan={true} 
-            enableRotate={true} 
-            autoRotate={false}
-            maxDistance={5}
-            minDistance={1}
-          />
-        ) : (
-          <OrbitControls 
-            enableZoom={false} 
-            enablePan={false} 
-            enableRotate={false} 
-            autoRotate={true} 
-            autoRotateSpeed={0.5}
-            target={[0, 0, 0]}
-          />
-        )}
+        <OrbitControls 
+          enableZoom={isHovered}
+          enablePan={isHovered}
+          enableRotate={isHovered}
+          autoRotate={!isHovered}
+          autoRotateSpeed={1}
+          target={[0, 0, 0]}
+          maxDistance={5}
+          minDistance={1}
+        />
       </Canvas>
     </div>
   );
