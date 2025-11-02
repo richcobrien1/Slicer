@@ -153,6 +153,173 @@
   letter-spacing: 0.5px;
 }
 
+.slicer-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.slicer-modal {
+  background: #1f1f1f;
+  border-radius: 8px;
+  border: 1px solid #444;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.slicer-modal-header {
+  padding: 20px;
+  border-bottom: 2px solid #444;
+}
+
+.slicer-modal-header h3 {
+  margin: 0;
+  color: #e0e0e0;
+  font-size: 20px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.slicer-modal-body {
+  padding: 20px;
+}
+
+.slicer-modal-body p {
+  color: #888;
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0 0 20px 0;
+}
+
+.slicer-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.slicer-option {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  border: 2px solid #444;
+  border-radius: 4px;
+  background: #2a2a2a;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.slicer-option:hover {
+  border-color: #ff9800;
+  background: #2a2520;
+  transform: translateX(5px);
+}
+
+.slicer-option.available {
+  border-color: #4CAF50;
+}
+
+.slicer-option.available:hover {
+  border-color: #66BB6A;
+  background: #1f2f1f;
+}
+
+.slicer-radio {
+  flex-shrink: 0;
+}
+
+.slicer-radio input[type="radio"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #ff9800;
+}
+
+.slicer-info {
+  flex: 1;
+}
+
+.slicer-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e0e0e0;
+  margin-bottom: 4px;
+}
+
+.slicer-status {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.slicer-status.available {
+  color: #4CAF50;
+}
+
+.slicer-status.not-found {
+  color: #ff5252;
+}
+
+.slicer-modal-footer {
+  padding: 20px;
+  border-top: 2px solid #444;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.modal-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modal-btn-cancel {
+  background: #444;
+  color: #e0e0e0;
+}
+
+.modal-btn-cancel:hover {
+  background: #555;
+}
+
+.modal-btn-save {
+  background: #ff9800;
+  color: #000;
+}
+
+.modal-btn-save:hover {
+  background: #ffa726;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
+}
+
+.modal-btn-save:disabled {
+  background: #555;
+  color: #888;
+  cursor: not-allowed;
+  transform: none;
+}
+
 @media (max-width: 768px) {
   .export-buttons {
     grid-template-columns: 1fr;
@@ -168,5 +335,21 @@
 
   .btn-subtitle {
     font-size: 12px;
+  }
+
+  .slicer-modal {
+    width: 95%;
+  }
+
+  .slicer-option {
+    padding: 12px;
+  }
+
+  .slicer-modal-footer {
+    flex-direction: column;
+  }
+
+  .modal-btn {
+    width: 100%;
   }
 }

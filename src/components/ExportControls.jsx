@@ -5,6 +5,10 @@ import './ExportControls.css';
 
 const ExportControls = ({ selectedModel, onModelImport }) => {
   const [isDragging, setIsDragging] = useState(false);
+  const [preferredSlicer, setPreferredSlicer] = useState(() => {
+    return localStorage.getItem('preferredSlicer') || null;
+  });
+  const [showSlicerSetup, setShowSlicerSetup] = useState(false);
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -91,11 +95,28 @@ const ExportControls = ({ selectedModel, onModelImport }) => {
       const filename = `${selectedModel.name.toLowerCase()}_print.stl`;
       const blob = new Blob([result], { type: 'application/sla' });
 
-      // Use native save dialog (works in both Electron and modern browsers)
+      // Detect common slicer installation paths
+      const slicerPaths = detectSlicerPaths();
+      
+      // Use native save dialog with suggested locations
       const savedPath = await saveFile(blob, filename);
       
       if (savedPath) {
-        alert(`🖨️ File ready for printing!\n\n✅ Saved: ${typeof savedPath === 'string' ? savedPath : filename}\n\nNext steps:\n1. Open in your slicer software (Cura, PrusaSlicer, etc.)\n2. Configure print settings\n3. Send to your 3D printer\n\nTip: Save to your printer's watch folder for automatic detection!`);
+        // Offer to open in slicer
+        const slicerOptions = slicerPaths.length > 0 
+          ? `\n\n🎯 Detected Slicers:\n${slicerPaths.map(s => `• ${s.name}`).join('\n')}\n\nWould you like to open in your slicer now?`
+          : '';
+        
+        const message = `🖨️ File ready for printing!\n\n✅ Saved: ${typeof savedPath === 'string' ? savedPath : filename}\n\nNext steps:\n1. Open in your slicer software${slicerOptions}\n2. Configure print settings (temperature, speed, infill)\n3. Slice to G-code\n4. Send to your 3D printer\n\nTip: Save to your printer's watch folder for automatic detection!`;
+        
+        alert(message);
+        
+        // If we detected slicers, offer to open the file
+        if (slicerPaths.length > 0 && savedPath && typeof savedPath === 'string') {
+          if (confirm(`Open ${filename} in ${slicerPaths[0].name}?`)) {
+            await openInSlicer(savedPath, slicerPaths[0]);
+          }
+        }
       }
       
     } catch (error) {
@@ -103,6 +124,69 @@ const ExportControls = ({ selectedModel, onModelImport }) => {
       if (error.name !== 'AbortError') {
         alert('❌ Error preparing file for printer. Please try again.');
       }
+    }
+  };
+
+  const detectSlicerPaths = () => {
+    // Common slicer installation paths
+    const slicers = [];
+    
+    // Windows paths
+    if (navigator.platform.includes('Win')) {
+      slicers.push(
+        { name: 'Ultimaker Cura', path: 'C:\\Program Files\\Ultimaker Cura\\Cura.exe', protocol: 'cura://' },
+        { name: 'PrusaSlicer', path: 'C:\\Program Files\\Prusa3D\\PrusaSlicer\\prusa-slicer.exe', protocol: 'prusaslicer://' },
+        { name: 'OrcaSlicer', path: 'C:\\Program Files\\OrcaSlicer\\OrcaSlicer.exe', protocol: null },
+        { name: 'Bambu Studio', path: 'C:\\Program Files\\Bambu Studio\\BambuStudio.exe', protocol: null },
+        { name: 'Simplify3D', path: 'C:\\Program Files\\Simplify3D\\Simplify3D.exe', protocol: null }
+      );
+    }
+    
+    // macOS paths
+    if (navigator.platform.includes('Mac')) {
+      slicers.push(
+        { name: 'Ultimaker Cura', path: '/Applications/Ultimaker Cura.app', protocol: 'cura://' },
+        { name: 'PrusaSlicer', path: '/Applications/PrusaSlicer.app', protocol: 'prusaslicer://' },
+        { name: 'OrcaSlicer', path: '/Applications/OrcaSlicer.app', protocol: null },
+        { name: 'Bambu Studio', path: '/Applications/Bambu Studio.app', protocol: null }
+      );
+    }
+    
+    // Linux paths
+    if (navigator.platform.includes('Linux')) {
+      slicers.push(
+        { name: 'Ultimaker Cura', path: '/usr/bin/cura', protocol: 'cura://' },
+        { name: 'PrusaSlicer', path: '/usr/bin/prusa-slicer', protocol: 'prusaslicer://' },
+        { name: 'OrcaSlicer', path: '/usr/bin/orcaslicer', protocol: null }
+      );
+    }
+    
+    return slicers;
+  };
+
+  const openInSlicer = async (filePath, slicer) => {
+    try {
+      if (isElectron()) {
+        // Use Electron to execute slicer
+        const { openExternal } = await import('../utils/electronUtils');
+        if (slicer.protocol) {
+          // Use protocol handler if available
+          await openExternal(`${slicer.protocol}${encodeURIComponent(filePath)}`);
+        } else {
+          // Try to execute directly
+          alert(`Please open ${slicer.name} manually and load:\n${filePath}`);
+        }
+      } else {
+        // Web version - try protocol handler
+        if (slicer.protocol) {
+          window.location.href = `${slicer.protocol}${encodeURIComponent(filePath)}`;
+        } else {
+          alert(`Please open ${slicer.name} manually and load the saved file.`);
+        }
+      }
+    } catch (error) {
+      console.error('Error opening slicer:', error);
+      alert(`Couldn't auto-open ${slicer.name}. Please open it manually and load the file.`);
     }
   };
 
@@ -157,6 +241,55 @@ const ExportControls = ({ selectedModel, onModelImport }) => {
             STL files are optimized for 3D printing and compatible with all major slicers 
             (Cura, PrusaSlicer, Simplify3D, etc.)
           </p>
+          {preferredSlicer && (
+            <p className="preferred-slicer">
+              🎯 Preferred: <strong>{preferredSlicer}</strong> 
+              <button onClick={() => setShowSlicerSetup(true)} style={{marginLeft: '8px', fontSize: '11px'}}>
+                Change
+              </button>
+            </p>
+          )}
+          {!preferredSlicer && (
+            <button 
+              onClick={() => setShowSlicerSetup(true)} 
+              style={{marginTop: '8px', padding: '6px 12px', fontSize: '12px'}}
+            >
+              ⚙️ Setup Preferred Slicer
+            </button>
+          )}
+        </div>
+      )}
+
+      {showSlicerSetup && (
+        <div className="slicer-setup-modal" onClick={() => setShowSlicerSetup(false)}>
+          <div className="slicer-setup-content" onClick={(e) => e.stopPropagation()}>
+            <h3>🎯 Choose Your Preferred Slicer</h3>
+            <p style={{fontSize: '13px', color: '#b0b0b0', marginBottom: '15px'}}>
+              We'll automatically offer to open files in this slicer
+            </p>
+            <div className="slicer-options">
+              {['Ultimaker Cura', 'PrusaSlicer', 'OrcaSlicer', 'Bambu Studio', 'Simplify3D', 'Other'].map(slicer => (
+                <button
+                  key={slicer}
+                  className={`slicer-option ${preferredSlicer === slicer ? 'selected' : ''}`}
+                  onClick={() => {
+                    setPreferredSlicer(slicer);
+                    localStorage.setItem('preferredSlicer', slicer);
+                    setShowSlicerSetup(false);
+                    alert(`✅ ${slicer} set as preferred slicer!`);
+                  }}
+                >
+                  {slicer}
+                </button>
+              ))}
+            </div>
+            <button 
+              onClick={() => setShowSlicerSetup(false)}
+              style={{marginTop: '15px', padding: '8px 16px'}}
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       )}
     </div>
