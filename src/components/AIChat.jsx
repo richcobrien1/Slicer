@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import './AIChat.css';
 import { processPrompt, hasAPIKey, getAPIKey, setAPIKey } from '../utils/aiService';
+import { searchModels, downloadModel, getSearchAPIKeys, saveSearchAPIKeys } from '../utils/modelSearch';
 
-const AIChat = ({ isOpen, onClose, onSubmitPrompt }) => {
+const AIChat = ({ isOpen, onClose, onSubmitPrompt, onModelsFound }) => {
   const [currentPrompt, setCurrentPrompt] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -23,6 +24,8 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt }) => {
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingPrompt, setEditingPrompt] = useState(null);
+  const [searchAPIKeys, setSearchAPIKeys] = useState({});
+  const [isSearching, setIsSearching] = useState(false);
 
   const categories = ['All', 'Scale', 'Support', 'Optimization', 'Modification', 'Transform'];
 
@@ -58,10 +61,13 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt }) => {
       recognitionInstance.interimResults = false;
       recognitionInstance.lang = 'en-US';
 
-      recognitionInstance.onresult = (event) => {
+      recognitionInstance.onresult = async (event) => {
         const transcript = event.results[0][0].transcript;
         setCurrentPrompt(prev => prev + (prev ? ' ' : '') + transcript);
         setIsListening(false);
+
+        // Detect model search intent
+        await detectAndHandleSearch(transcript);
       };
 
       recognitionInstance.onerror = (event) => {
@@ -78,7 +84,73 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt }) => {
 
     // Load API key on mount
     setApiKeyState(getAPIKey());
+    setSearchAPIKeys(getSearchAPIKeys());
   }, []);
+
+  const detectAndHandleSearch = async (text) => {
+    // Keywords that indicate model search intent
+    const searchKeywords = [
+      'find', 'search', 'look for', 'get', 'download', 'import',
+      'need a', 'want a', 'show me', 'fetch', 'grab', 'pull'
+    ];
+
+    const lowerText = text.toLowerCase();
+    const isSearchIntent = searchKeywords.some(keyword => lowerText.includes(keyword));
+
+    if (isSearchIntent) {
+      // Extract search query - remove common command words
+      let searchQuery = text
+        .toLowerCase()
+        .replace(/find me|search for|look for|get me|show me|i need a|i want a|download|import|fetch|grab|pull/gi, '')
+        .replace(/model|models|3d model|3d models/gi, '')
+        .trim();
+
+      if (searchQuery) {
+        await handleModelSearch(searchQuery);
+      }
+    }
+  };
+
+  const handleModelSearch = async (query) => {
+    setIsSearching(true);
+    try {
+      console.log(`🔍 Voice search initiated: "${query}"`);
+      
+      // Search across all platforms
+      const results = await searchModels(query, {
+        platforms: ['thingiverse', 'printables', 'makerworld', 'creality', 'grabcad', 'studiotripo'],
+        limit: 10,
+        apiKeys: searchAPIKeys
+      });
+
+      if (results.length === 0) {
+        alert(`❌ No models found for "${query}". Try different search terms.`);
+        return;
+      }
+
+      // Download and prepare models for import
+      const modelsToImport = [];
+      for (const result of results) {
+        try {
+          const model = await downloadModel(result);
+          modelsToImport.push(model);
+        } catch (error) {
+          console.error('Error downloading model:', error);
+        }
+      }
+
+      // Notify parent component to add models to gallery
+      if (onModelsFound && modelsToImport.length > 0) {
+        onModelsFound(modelsToImport);
+        alert(`✅ Found ${modelsToImport.length} models for "${query}"! Check the model gallery.`);
+      }
+    } catch (error) {
+      console.error('Model search error:', error);
+      alert(`❌ Search failed: ${error.message}`);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const startListening = () => {
     if (recognition) {
@@ -136,6 +208,12 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt }) => {
       alert('✅ API key saved!');
       setShowSettings(false);
     }
+  };
+
+  const handleSaveSearchAPIKey = (platform, key) => {
+    const updatedKeys = { ...searchAPIKeys, [platform]: key };
+    setSearchAPIKeys(updatedKeys);
+    saveSearchAPIKeys(updatedKeys);
   };
 
   const toggleFavorite = (id) => {
@@ -249,6 +327,41 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt }) => {
               </div>
               {hasAPIKey() && <p className="success-msg">✅ API key configured for {selectedAI === 'chatgpt' ? 'ChatGPT' : selectedAI === 'claude' ? 'Claude' : selectedAI === 'gemini' ? 'Gemini' : 'Grok'}</p>}
             </div>
+
+            {/* Model Search API Keys */}
+            <div className="api-key-section">
+              <h4>🔍 Model Search API Keys (Optional)</h4>
+              <p className="settings-info">
+                Configure API keys for model repositories to enable voice-activated model search.
+              </p>
+              
+              <div className="search-api-keys">
+                <div className="api-key-row">
+                  <label>Thingiverse:</label>
+                  <input
+                    type="password"
+                    value={searchAPIKeys.thingiverse || ''}
+                    onChange={(e) => handleSaveSearchAPIKey('thingiverse', e.target.value)}
+                    placeholder="Get key from apps.thingiverse.com"
+                    className="api-key-input-small"
+                  />
+                </div>
+                <div className="api-key-row">
+                  <label>Printables:</label>
+                  <input
+                    type="password"
+                    value={searchAPIKeys.printables || ''}
+                    onChange={(e) => handleSaveSearchAPIKey('printables', e.target.value)}
+                    placeholder="Public API - no key needed"
+                    className="api-key-input-small"
+                    disabled
+                  />
+                </div>
+              </div>
+              <p className="settings-note">
+                💡 Say "find me a [model type]" to search across all platforms!
+              </p>
+            </div>
           </div>
         )}
 
@@ -267,28 +380,33 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt }) => {
               <button 
                 className={`action-btn primary ${isProcessing ? 'processing' : ''}`}
                 onClick={handleSubmit}
-                disabled={isProcessing}
+                disabled={isProcessing || isSearching}
               >
                 {isProcessing ? '⏳ Processing...' : '▶️ Execute Prompt'}
               </button>
               <button 
-                className={`action-btn microphone ${isListening ? 'listening' : ''}`}
+                className={`action-btn microphone ${isListening ? 'listening' : ''} ${isSearching ? 'searching' : ''}`}
                 onClick={isListening ? stopListening : startListening}
-                disabled={isProcessing}
-                title={isListening ? 'Stop recording' : 'Start voice input'}
+                disabled={isProcessing || isSearching}
+                title={isListening ? 'Stop recording' : 'Start voice input - Say "find me a [model]" to search'}
               >
-                {isListening ? '⏹️ Stop' : '🎤 Voice'}
+                {isSearching ? '🔍 Searching...' : isListening ? '⏹️ Stop' : '🎤 Voice'}
               </button>
-              <button className="action-btn secondary" onClick={handleSaveNewPrompt} disabled={isProcessing}>
+              <button className="action-btn secondary" onClick={handleSaveNewPrompt} disabled={isProcessing || isSearching}>
                 💾 Save to Library
               </button>
-              <button className="action-btn secondary" onClick={() => setCurrentPrompt('')} disabled={isProcessing}>
+              <button className="action-btn secondary" onClick={() => setCurrentPrompt('')} disabled={isProcessing || isSearching}>
                 🗑️ Clear
               </button>
             </div>
             {isListening && (
               <div className="listening-indicator">
-                🎤 Listening... Speak now!
+                🎤 Listening... Say "find me a [model type]" to search!
+              </div>
+            )}
+            {isSearching && (
+              <div className="searching-indicator">
+                🔍 Searching across 6 platforms...
               </div>
             )}
           </div>

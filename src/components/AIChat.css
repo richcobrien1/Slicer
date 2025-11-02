@@ -191,8 +191,59 @@
   padding-top: 20px;
 }
 
+/* Model Search API Keys */
+.search-api-keys {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.api-key-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.api-key-row label {
+  min-width: 100px;
+  color: #e0e0e0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.api-key-input-small {
+  flex: 1;
+  padding: 8px 12px;
+  background: #2a2a2a;
+  border: 2px solid #444;
+  border-radius: 6px;
+  color: #e0e0e0;
+  font-size: 12px;
+  font-family: 'Consolas', 'Monaco', monospace;
+}
+
+.api-key-input-small:focus {
+  outline: none;
+  border-color: #ff9800;
+}
+
+.api-key-input-small:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.settings-note {
+  color: #4CAF50;
+  font-size: 12px;
+  margin-top: 10px;
+  margin-bottom: 0;
+  font-style: italic;
+}
+
 /* Listening Indicator */
-.listening-indicator {
+.listening-indicator,
+.searching-indicator {
   background: #ff9800;
   color: #fff;
   padding: 12px;
@@ -203,6 +254,10 @@
   margin-top: 10px;
 }
 
+.searching-indicator {
+  background: #2196F3;
+}
+
 @keyframes pulse {
   0%, 100% {
     opacity: 1;
@@ -210,6 +265,11 @@
   50% {
     opacity: 0.7;
   }
+}
+
+.action-btn.microphone.searching {
+  background: #2196F3;
+  animation: pulse 1.5s infinite;
 }
 
 .chat-content {

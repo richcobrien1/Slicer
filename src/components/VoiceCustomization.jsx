@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import './VoiceCustomization.css';
 import { processPrompt, hasAPIKey, getAPIKey, setAPIKey } from '../utils/aiService';
+import { searchModels, downloadModel, getSearchAPIKeys, saveSearchAPIKeys } from '../utils/modelSearch';
 
-const VoiceCustomization = ({ onCustomizationRequest }) => {
+const VoiceCustomization = ({ onCustomizationRequest, onModelsFound }) => {
   // Voice recognition state
   const [isListening, setIsListening] = useState(false);
   const [currentPrompt, setCurrentPrompt] = useState('');
@@ -31,6 +32,8 @@ const VoiceCustomization = ({ onCustomizationRequest }) => {
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingPrompt, setEditingPrompt] = useState(null);
+  const [searchAPIKeys, setSearchAPIKeys] = useState({});
+  const [isSearching, setIsSearching] = useState(false);
 
   const categories = ['All', 'Scale', 'Support', 'Optimization', 'Modification', 'Transform'];
 
@@ -44,10 +47,13 @@ const VoiceCustomization = ({ onCustomizationRequest }) => {
       recognitionInstance.interimResults = false;
       recognitionInstance.lang = 'en-US';
 
-      recognitionInstance.onresult = (event) => {
+      recognitionInstance.onresult = async (event) => {
         const transcript = event.results[0][0].transcript;
         setCurrentPrompt(prev => prev + (prev ? ' ' : '') + transcript);
         setIsListening(false);
+
+        // Detect model search intent
+        await detectAndHandleSearch(transcript);
       };
 
       recognitionInstance.onerror = (event) => {
@@ -67,7 +73,75 @@ const VoiceCustomization = ({ onCustomizationRequest }) => {
 
     // Load API key on mount
     setApiKeyState(getAPIKey());
+    setSearchAPIKeys(getSearchAPIKeys());
   }, []);
+
+  const detectAndHandleSearch = async (text) => {
+    // Keywords that indicate model search intent
+    const searchKeywords = [
+      'find', 'search', 'look for', 'get', 'download', 'import',
+      'need a', 'want a', 'show me', 'fetch', 'grab', 'pull'
+    ];
+
+    const lowerText = text.toLowerCase();
+    const isSearchIntent = searchKeywords.some(keyword => lowerText.includes(keyword));
+
+    if (isSearchIntent) {
+      // Extract search query - remove common command words
+      let searchQuery = text
+        .toLowerCase()
+        .replace(/find me|search for|look for|get me|show me|i need a|i want a|download|import|fetch|grab|pull/gi, '')
+        .replace(/model|models|3d model|3d models/gi, '')
+        .trim();
+
+      if (searchQuery) {
+        await handleModelSearch(searchQuery);
+      }
+    }
+  };
+
+  const handleModelSearch = async (query) => {
+    if (!onModelsFound) return;
+    
+    setIsSearching(true);
+    try {
+      console.log(`🔍 Voice search initiated: "${query}"`);
+      
+      // Search across all platforms
+      const results = await searchModels(query, {
+        platforms: ['thingiverse', 'printables', 'makerworld', 'creality', 'grabcad', 'studiotripo'],
+        limit: 10,
+        apiKeys: searchAPIKeys
+      });
+
+      if (results.length === 0) {
+        alert(`❌ No models found for "${query}". Try different search terms.`);
+        return;
+      }
+
+      // Download and prepare models for import
+      const modelsToImport = [];
+      for (const result of results) {
+        try {
+          const model = await downloadModel(result);
+          modelsToImport.push(model);
+        } catch (error) {
+          console.error('Error downloading model:', error);
+        }
+      }
+
+      // Notify parent component to add models to gallery
+      if (modelsToImport.length > 0) {
+        onModelsFound(modelsToImport);
+        alert(`✅ Found ${modelsToImport.length} models for "${query}"! Check the model gallery.`);
+      }
+    } catch (error) {
+      console.error('Model search error:', error);
+      alert(`❌ Search failed: ${error.message}`);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const startListening = () => {
     if (recognition) {
@@ -290,7 +364,13 @@ const VoiceCustomization = ({ onCustomizationRequest }) => {
             
             {isListening && (
               <div className="listening-indicator-inline">
-                🎤 Listening... Speak now!
+                🎤 Listening... Say "find me a [model]" to search!
+              </div>
+            )}
+            
+            {isSearching && (
+              <div className="searching-indicator-inline">
+                🔍 Searching across 6 platforms...
               </div>
             )}
           </div>

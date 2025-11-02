@@ -115,6 +115,29 @@ function App() {
     }
   };
 
+  const handleModelsFound = (models) => {
+    // Add search results to imported models
+    const newModels = models.map(model => ({
+      ...model,
+      id: Date.now() + Math.random(),
+      isImported: true,
+      isSearchResult: true
+    }));
+    
+    setImportedModels(prev => [...prev, ...newModels]);
+    
+    // Notify gallery
+    if (galleryRef.current) {
+      newModels.forEach(model => {
+        if (galleryRef.current.addImportedModel) {
+          galleryRef.current.addImportedModel(model);
+        }
+      });
+    }
+    
+    console.log(`Added ${newModels.length} search results to gallery`);
+  };
+
   const handleCustomization = (instructions) => {
     // Handle both old string format and new AI instructions format
     const displayText = typeof instructions === 'string' 
@@ -203,6 +226,7 @@ function App() {
         <div className="right-panel">
           <VoiceCustomization 
             onCustomizationRequest={handleCustomization}
+            onModelsFound={handleModelsFound}
           />
           <ExportControls 
             selectedModel={selectedModel}

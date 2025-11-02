@@ -326,7 +326,8 @@
   cursor: not-allowed;
 }
 
-.listening-indicator-inline {
+.listening-indicator-inline,
+.searching-indicator-inline {
   background: #ff9800;
   color: #fff;
   padding: 8px;
@@ -336,6 +337,10 @@
   font-weight: 600;
   animation: pulse 1.5s infinite;
   margin-top: 8px;
+}
+
+.searching-indicator-inline {
+  background: #2196F3;
 }
 
 /* Library Controls */
