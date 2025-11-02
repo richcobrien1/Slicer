@@ -43,16 +43,13 @@
     "win": {
       "target": [
         {
-          "target": "nsis",
-          "arch": ["x64", "arm64"]
-        },
-        {
-          "target": "portable",
+          "target": "dir",
           "arch": ["x64"]
         }
       ],
       "icon": "public/icon.ico",
-      "artifactName": "${productName}-${version}-${arch}.${ext}"
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "forceCodeSigning": false
     },
     "nsis": {
       "oneClick": false,
