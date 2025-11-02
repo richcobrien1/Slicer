@@ -8,6 +8,7 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt }) => {
   const [isListening, setIsListening] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [apiKey, setApiKeyState] = useState('');
+  const [selectedAI, setSelectedAI] = useState('chatgpt');
   const [recognition, setRecognition] = useState(null);
   const [promptLibrary, setPromptLibrary] = useState([
     { id: 1, name: 'Make it Twice as Big', prompt: 'Double the scale of the model on all axes', category: 'Scale', favorite: true },
@@ -180,23 +181,74 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt }) => {
         {/* Settings Panel */}
         {showSettings && (
           <div className="settings-panel">
-            <h3>⚙️ OpenAI API Configuration</h3>
-            <p className="settings-info">
-              Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">OpenAI Platform</a>
-            </p>
-            <div className="api-key-input-group">
-              <input
-                type="password"
-                value={apiKey}
-                onChange={(e) => setApiKeyState(e.target.value)}
-                placeholder="sk-..."
-                className="api-key-input"
-              />
-              <button className="action-btn primary" onClick={handleSaveAPIKey}>
-                💾 Save
-              </button>
+            <h3>⚙️ AI Provider Configuration</h3>
+            
+            {/* AI Provider Selection */}
+            <div className="ai-provider-selector">
+              <label>Select AI Provider:</label>
+              <div className="provider-options">
+                <button 
+                  className={`provider-btn ${selectedAI === 'chatgpt' ? 'active' : ''}`}
+                  onClick={() => setSelectedAI('chatgpt')}
+                >
+                  ChatGPT
+                </button>
+                <button 
+                  className={`provider-btn ${selectedAI === 'claude' ? 'active' : ''}`}
+                  onClick={() => setSelectedAI('claude')}
+                >
+                  Claude
+                </button>
+                <button 
+                  className={`provider-btn ${selectedAI === 'gemini' ? 'active' : ''}`}
+                  onClick={() => setSelectedAI('gemini')}
+                >
+                  Gemini
+                </button>
+                <button 
+                  className={`provider-btn ${selectedAI === 'grok' ? 'active' : ''}`}
+                  onClick={() => setSelectedAI('grok')}
+                >
+                  Grok
+                </button>
+              </div>
             </div>
-            {hasAPIKey() && <p className="success-msg">✅ API key configured</p>}
+
+            {/* API Key Input */}
+            <div className="api-key-section">
+              <p className="settings-info">
+                {selectedAI === 'chatgpt' && (
+                  <>Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">OpenAI Platform</a></>
+                )}
+                {selectedAI === 'claude' && (
+                  <>Get your API key from <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener noreferrer">Anthropic Console</a></>
+                )}
+                {selectedAI === 'gemini' && (
+                  <>Get your API key from <a href="https://makersuite.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a></>
+                )}
+                {selectedAI === 'grok' && (
+                  <>Get your API key from <a href="https://console.x.ai/" target="_blank" rel="noopener noreferrer">xAI Console</a></>
+                )}
+              </p>
+              <div className="api-key-input-group">
+                <input
+                  type="password"
+                  value={apiKey}
+                  onChange={(e) => setApiKeyState(e.target.value)}
+                  placeholder={
+                    selectedAI === 'chatgpt' ? 'sk-...' :
+                    selectedAI === 'claude' ? 'sk-ant-...' :
+                    selectedAI === 'gemini' ? 'AIza...' :
+                    'xai-...'
+                  }
+                  className="api-key-input"
+                />
+                <button className="action-btn primary" onClick={handleSaveAPIKey}>
+                  💾 Save
+                </button>
+              </div>
+              {hasAPIKey() && <p className="success-msg">✅ API key configured for {selectedAI === 'chatgpt' ? 'ChatGPT' : selectedAI === 'claude' ? 'Claude' : selectedAI === 'gemini' ? 'Gemini' : 'Grok'}</p>}
+            </div>
           </div>
         )}
 

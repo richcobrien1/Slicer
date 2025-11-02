@@ -105,15 +105,55 @@ const ExportControls = ({ selectedModel, onModelImport }) => {
     }
 
     try {
-      // Check if File System Access API is available
+      // Generate the STL file
+      alert('⏳ Preparing model for printing...');
+      const mesh = await createMeshFromType(selectedModel.name);
+      const exporter = new (await import('three/examples/jsm/exporters/STLExporter')).STLExporter();
+      const result = exporter.parse(mesh, { binary: true });
+      
+      const filename = `${selectedModel.name.toLowerCase()}_print.stl`;
+      
+      // Create a blob from the STL data
+      const blob = new Blob([result], { type: 'application/sla' });
+      const url = URL.createObjectURL(blob);
+      
+      // Trigger browser's print dialog
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = url;
+      document.body.appendChild(iframe);
+      
+      // Wait for iframe to load then trigger print
+      iframe.onload = () => {
+        try {
+          // Try to trigger print dialog
+          iframe.contentWindow.print();
+          
+          // Clean up after a delay
+          setTimeout(() => {
+            document.body.removeChild(iframe);
+            URL.revokeObjectURL(url);
+          }, 1000);
+          
+          alert(`🖨️ Print dialog opened!\n\nIf print dialog didn't appear:\n1. Check your printer is connected\n2. Your browser may have blocked the print dialog\n3. Try the "Download STL" option instead`);
+        } catch (printError) {
+          console.error('Print dialog error:', printError);
+          // Fallback to file save picker
+          document.body.removeChild(iframe);
+          URL.revokeObjectURL(url);
+          fallbackToSavePicker(result, filename);
+        }
+      };
+      
+    } catch (error) {
+      console.error('Send to printer error:', error);
+      alert('❌ Error preparing file for printer. Please try again.');
+    }
+  };
+
+  const fallbackToSavePicker = async (result, filename) => {
+    try {
       if ('showSaveFilePicker' in window) {
-        // Modern approach - let user choose where to save (e.g., printer's watch folder)
-        const mesh = await createMeshFromType(selectedModel.name);
-        const exporter = new (await import('three/examples/jsm/exporters/STLExporter')).STLExporter();
-        const result = exporter.parse(mesh, { binary: true });
-        
-        const filename = `${selectedModel.name.toLowerCase()}_print.stl`;
-        
         const options = {
           suggestedName: filename,
           types: [{
@@ -127,23 +167,25 @@ const ExportControls = ({ selectedModel, onModelImport }) => {
         await writable.write(result);
         await writable.close();
         
-        alert(`✅ File saved!\n\nNext steps:\n1. Your slicer software should detect the file\n2. Configure print settings\n3. Send to printer\n\nTip: Save directly to your slicer's watch folder for auto-import!`);
+        alert(`✅ File saved!\n\nSave to your printer's watch folder or import into your slicer.`);
       } else {
-        // Fallback - just download the file
-        alert('⏳ Loading model...');
-        const mesh = await createMeshFromType(selectedModel.name);
-        const filename = `${selectedModel.name.toLowerCase()}_print.stl`;
-        exportToSTL(mesh, filename);
+        // Final fallback - direct download
+        const blob = new Blob([result], { type: 'application/sla' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
         
-        alert(`📥 File downloaded!\n\nNext steps:\n1. Open your slicer (Cura, PrusaSlicer, etc.)\n2. Import the downloaded STL file\n3. Configure settings and slice\n4. Send to your 3D printer\n\nTip: Most printers accept files via:\n- SD card\n- USB cable\n- Network (OctoPrint, WiFi)`);
+        alert(`📥 File downloaded! Import into your slicer to print.`);
       }
     } catch (error) {
-      if (error.name === 'AbortError') {
-        // User cancelled the file picker
-        return;
+      if (error.name !== 'AbortError') {
+        console.error('Fallback save error:', error);
       }
-      console.error('Send to printer error:', error);
-      alert('❌ Error preparing file for printer. Please try again.');
     }
   };
 
