@@ -177,13 +177,43 @@ export async function saveFile(data, defaultName = 'model.stl') {
   if (isElectron()) {
     return await saveFileElectron(data, defaultName);
   } else {
-    // Fallback to web download
+    // Try File System Access API first (Chrome, Edge)
+    if ('showSaveFilePicker' in window) {
+      try {
+        const options = {
+          suggestedName: defaultName,
+          types: [{
+            description: 'STL Files',
+            accept: { 'application/sla': ['.stl'] }
+          }]
+        };
+        
+        const handle = await window.showSaveFilePicker(options);
+        const writable = await handle.createWritable();
+        
+        const blob = data instanceof Blob ? data : new Blob([data]);
+        await writable.write(blob);
+        await writable.close();
+        
+        return defaultName;
+      } catch (error) {
+        if (error.name === 'AbortError') {
+          return null; // User cancelled
+        }
+        console.error('File System Access API error:', error);
+        // Fall through to download fallback
+      }
+    }
+    
+    // Fallback to traditional download
     const blob = data instanceof Blob ? data : new Blob([data]);
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = defaultName;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
     return defaultName;
   }

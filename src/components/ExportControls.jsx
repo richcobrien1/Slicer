@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { exportToSTL, createMeshFromType } from '../utils/stlExport';
+import { isElectron, saveFile } from '../utils/electronUtils';
 import './ExportControls.css';
 
 const ExportControls = ({ selectedModel, onModelImport }) => {
@@ -24,40 +25,17 @@ const ExportControls = ({ selectedModel, onModelImport }) => {
 
     const file = e.dataTransfer.files[0];
     if (file && file.name.toLowerCase().endsWith('.stl')) {
-      const fileName = file.name.replace('.stl', '');
+      const fileName = file.name.replace(/\.stl$/i, '');
       
       try {
-        // Check if File System Access API is available
-        if ('showSaveFilePicker' in window) {
-          // Read the file as ArrayBuffer for direct printing
-          const arrayBuffer = await file.arrayBuffer();
-          
-          const options = {
-            suggestedName: `print_${fileName}.stl`,
-            types: [{
-              description: 'STL Files',
-              accept: { 'application/sla': ['.stl'] }
-            }]
-          };
-          
-          const handle = await window.showSaveFilePicker(options);
-          const writable = await handle.createWritable();
-          await writable.write(arrayBuffer);
-          await writable.close();
-          
-          alert(`🖨️ ${fileName} sent to printer!\n\nNext steps:\n1. Configure print settings in your slicer\n2. Send to printer\n\nFile saved to your printer's folder.`);
-        } else {
-          // Fallback - download the file
-          const url = URL.createObjectURL(file);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `print_${fileName}.stl`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-          
-          alert(`🖨️ ${fileName} ready for printing!\n\nFile downloaded. Import into your slicer software to print.`);
+        // Convert file to blob and use our unified save function
+        const blob = new Blob([await file.arrayBuffer()], { type: 'application/sla' });
+        const suggestedName = `print_${fileName}.stl`;
+        
+        const savedPath = await saveFile(blob, suggestedName);
+        
+        if (savedPath) {
+          alert(`🖨️ ${fileName} ready for printing!\n\n✅ Saved: ${typeof savedPath === 'string' ? savedPath : suggestedName}\n\nNext steps:\n1. Open in your slicer (Cura, PrusaSlicer, etc.)\n2. Configure settings and slice\n3. Send to your 3D printer\n\nTip: Save to your printer's watch folder!`);
         }
       } catch (error) {
         if (error.name === 'AbortError') {
@@ -106,88 +84,29 @@ const ExportControls = ({ selectedModel, onModelImport }) => {
 
     try {
       // Generate the STL file
-      alert('⏳ Preparing model for printing...');
       const mesh = await createMeshFromType(selectedModel.name);
       const exporter = new (await import('three/examples/jsm/exporters/STLExporter')).STLExporter();
       const result = exporter.parse(mesh, { binary: true });
       
       const filename = `${selectedModel.name.toLowerCase()}_print.stl`;
-      
-      // Create a blob from the STL data
       const blob = new Blob([result], { type: 'application/sla' });
-      const url = URL.createObjectURL(blob);
+
+      // Use native save dialog (works in both Electron and modern browsers)
+      const savedPath = await saveFile(blob, filename);
       
-      // Trigger browser's print dialog
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      iframe.src = url;
-      document.body.appendChild(iframe);
-      
-      // Wait for iframe to load then trigger print
-      iframe.onload = () => {
-        try {
-          // Try to trigger print dialog
-          iframe.contentWindow.print();
-          
-          // Clean up after a delay
-          setTimeout(() => {
-            document.body.removeChild(iframe);
-            URL.revokeObjectURL(url);
-          }, 1000);
-          
-          alert(`🖨️ Print dialog opened!\n\nIf print dialog didn't appear:\n1. Check your printer is connected\n2. Your browser may have blocked the print dialog\n3. Try the "Download STL" option instead`);
-        } catch (printError) {
-          console.error('Print dialog error:', printError);
-          // Fallback to file save picker
-          document.body.removeChild(iframe);
-          URL.revokeObjectURL(url);
-          fallbackToSavePicker(result, filename);
-        }
-      };
+      if (savedPath) {
+        alert(`🖨️ File ready for printing!\n\n✅ Saved: ${typeof savedPath === 'string' ? savedPath : filename}\n\nNext steps:\n1. Open in your slicer software (Cura, PrusaSlicer, etc.)\n2. Configure print settings\n3. Send to your 3D printer\n\nTip: Save to your printer's watch folder for automatic detection!`);
+      }
       
     } catch (error) {
       console.error('Send to printer error:', error);
-      alert('❌ Error preparing file for printer. Please try again.');
+      if (error.name !== 'AbortError') {
+        alert('❌ Error preparing file for printer. Please try again.');
+      }
     }
   };
 
-  const fallbackToSavePicker = async (result, filename) => {
-    try {
-      if ('showSaveFilePicker' in window) {
-        const options = {
-          suggestedName: filename,
-          types: [{
-            description: 'STL Files',
-            accept: { 'application/sla': ['.stl'] }
-          }]
-        };
-        
-        const handle = await window.showSaveFilePicker(options);
-        const writable = await handle.createWritable();
-        await writable.write(result);
-        await writable.close();
-        
-        alert(`✅ File saved!\n\nSave to your printer's watch folder or import into your slicer.`);
-      } else {
-        // Final fallback - direct download
-        const blob = new Blob([result], { type: 'application/sla' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        
-        alert(`📥 File downloaded! Import into your slicer to print.`);
-      }
-    } catch (error) {
-      if (error.name !== 'AbortError') {
-        console.error('Fallback save error:', error);
-      }
-    }
-  };
+
 
   return (
     <div 
