@@ -22,7 +22,13 @@ const MODELS = {
  * Get AI provider from localStorage
  */
 export function getAIProvider() {
-  return localStorage.getItem('ai_provider') || 'local';
+  const provider = localStorage.getItem('ai_provider') || 'local';
+  // Migrate old huggingface setting to local
+  if (provider === 'huggingface') {
+    localStorage.setItem('ai_provider', 'local');
+    return 'local';
+  }
+  return provider;
 }
 
 /**
