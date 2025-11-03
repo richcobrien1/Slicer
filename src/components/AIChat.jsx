@@ -33,8 +33,19 @@ const AIChat = ({ onSubmitPrompt, onModelsFound, showNotification }) => {
   const [editingPrompt, setEditingPrompt] = useState(null);
   const [searchAPIKeys, setSearchAPIKeys] = useState({});
   const [isSearching, setIsSearching] = useState(false);
+  const [expandedSections, setExpandedSections] = useState({
+    prompt: true,
+    library: false
+  });
 
   const categories = ['All', 'Scale', 'Color', 'Base', 'Support', 'Modification', 'Transform'];
+
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
 
   const filteredPrompts = promptLibrary.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -405,127 +416,141 @@ const AIChat = ({ onSubmitPrompt, onModelsFound, showNotification }) => {
           </div>
         )}
 
-        <div className="chat-content">
-          {/* Left Panel - Prompt Input */}
-          <div className="prompt-panel">
-            <h3>Current Prompt</h3>
-            <textarea
-              value={currentPrompt}
-              onChange={(e) => setCurrentPrompt(e.target.value)}
-              placeholder="Enter your AI prompt here... (e.g., 'Make the model 2x bigger', 'Add drainage holes', 'Optimize for printing')"
-              className="prompt-textarea"
-              disabled={isProcessing}
-            />
-            <div className="prompt-actions">
-              <button 
-                className={`action-btn primary ${isProcessing ? 'processing' : ''}`}
-                onClick={handleSubmit}
-                disabled={isProcessing || isSearching}
-              >
-                {isProcessing ? '⏳ Processing...' : '▶️ Execute Prompt'}
-              </button>
-              <button 
-                className={`action-btn microphone ${isListening ? 'listening' : ''} ${isSearching ? 'searching' : ''}`}
-                onClick={isListening ? stopListening : startListening}
-                disabled={isProcessing || isSearching}
-                title={isListening ? 'Stop recording' : 'Start voice input - Say "find me a [model]" to search'}
-              >
-                {isSearching ? '🔍 Searching...' : isListening ? '⏹️ Stop' : '🎤 Voice'}
-              </button>
-              <button className="action-btn secondary" onClick={handleSaveNewPrompt} disabled={isProcessing || isSearching}>
-                💾 Save to Library
-              </button>
-              <button className="action-btn secondary" onClick={() => setCurrentPrompt('')} disabled={isProcessing || isSearching}>
-                🗑️ Clear
-              </button>
+        {/* Accordion Sections */}
+        <div className="accordion-sections">
+          {/* AI Prompt Section */}
+          <div className="accordion-section">
+            <div className="accordion-header" onClick={() => toggleSection('prompt')}>
+              <h4>🎤 AI PROMPT</h4>
+              <span className={`accordion-icon ${expandedSections.prompt ? 'open' : ''}`}>▶</span>
             </div>
-            {isListening && (
-              <div className="listening-indicator">
-                🎤 Listening... Say "find me a [model type]" to search!
+            <div className={`accordion-content ${expandedSections.prompt ? 'open' : ''}`}>
+              <div className="accordion-body">
+                <textarea
+                  value={currentPrompt}
+                  onChange={(e) => setCurrentPrompt(e.target.value)}
+                  placeholder="Enter your AI prompt here... (e.g., 'Make the model 2x bigger', 'Add drainage holes', 'Optimize for printing')"
+                  className="prompt-textarea"
+                  disabled={isProcessing}
+                />
+                <div className="prompt-actions">
+                  <button 
+                    className={`action-btn primary ${isProcessing ? 'processing' : ''}`}
+                    onClick={handleSubmit}
+                    disabled={isProcessing || isSearching}
+                  >
+                    {isProcessing ? '⏳ Processing...' : '▶️ Execute'}
+                  </button>
+                  <button 
+                    className={`action-btn microphone ${isListening ? 'listening' : ''} ${isSearching ? 'searching' : ''}`}
+                    onClick={isListening ? stopListening : startListening}
+                    disabled={isProcessing || isSearching}
+                    title={isListening ? 'Stop recording' : 'Start voice input'}
+                  >
+                    {isSearching ? '🔍' : isListening ? '⏹️' : '🎤'}
+                  </button>
+                  <button className="action-btn secondary" onClick={handleSaveNewPrompt} disabled={isProcessing || isSearching}>
+                    💾
+                  </button>
+                  <button className="action-btn secondary" onClick={() => setCurrentPrompt('')} disabled={isProcessing || isSearching}>
+                    🗑️
+                  </button>
+                </div>
+                {isListening && (
+                  <div className="listening-indicator">
+                    🎤 Listening... Say "find me a [model type]" to search!
+                  </div>
+                )}
+                {isSearching && (
+                  <div className="searching-indicator">
+                    🔍 Searching across 6 platforms...
+                  </div>
+                )}
               </div>
-            )}
-            {isSearching && (
-              <div className="searching-indicator">
-                🔍 Searching across 6 platforms...
-              </div>
-            )}
+            </div>
           </div>
 
-          {/* Right Panel - Prompt Library */}
-          <div className="library-panel">
-            <h3>Master Prompt Library</h3>
-            
-            {/* Search and Filter */}
-            <div className="library-controls">
-              <input
-                type="text"
-                placeholder="🔍 Search prompts..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-input"
-              />
-              <div className="filter-row">
-                <select 
-                  value={filterCategory} 
-                  onChange={(e) => setFilterCategory(e.target.value)}
-                  className="category-filter"
-                >
-                  {categories.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-                <label className="favorites-toggle">
-                  <input
-                    type="checkbox"
-                    checked={showFavoritesOnly}
-                    onChange={(e) => setShowFavoritesOnly(e.target.checked)}
-                  />
-                  ⭐ Favorites Only
-                </label>
-              </div>
+          {/* Prompt Library Section */}
+          <div className="accordion-section">
+            <div className="accordion-header" onClick={() => toggleSection('library')}>
+              <h4>📚 PROMPT LIBRARY</h4>
+              <span className={`accordion-icon ${expandedSections.library ? 'open' : ''}`}>▶</span>
             </div>
-
-            {/* Prompt List */}
-            <div className="prompt-list">
-              {filteredPrompts.length === 0 ? (
-                <div className="empty-state">No prompts found</div>
-              ) : (
-                filteredPrompts.map(prompt => (
-                  <div key={prompt.id} className="prompt-item">
-                    <div className="prompt-header">
-                      <span 
-                        className="favorite-star"
-                        onClick={() => toggleFavorite(prompt.id)}
-                      >
-                        {prompt.favorite ? '⭐' : '☆'}
-                      </span>
-                      <span className="prompt-name">{prompt.name}</span>
-                      <span className="prompt-category">{prompt.category}</span>
-                    </div>
-                    <div className="prompt-text">{prompt.prompt}</div>
-                    <div className="prompt-actions-row">
-                      <button 
-                        className="mini-btn use-btn"
-                        onClick={() => handleUsePrompt(prompt)}
-                      >
-                        Use
-                      </button>
-                      <button 
-                        className="mini-btn edit-btn"
-                        onClick={() => startEdit(prompt)}
-                      >
-                        Edit
-                      </button>
-                      <button 
-                        className="mini-btn delete-btn"
-                        onClick={() => deletePrompt(prompt.id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
+            <div className={`accordion-content ${expandedSections.library ? 'open' : ''}`}>
+              <div className="accordion-body">
+                {/* Search and Filter */}
+                <div className="library-controls">
+                  <input
+                    type="text"
+                    placeholder="🔍 Search prompts..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="search-input"
+                  />
+                  <div className="filter-row">
+                    <select 
+                      value={filterCategory} 
+                      onChange={(e) => setFilterCategory(e.target.value)}
+                      className="category-filter"
+                    >
+                      {categories.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                    <label className="favorites-toggle">
+                      <input
+                        type="checkbox"
+                        checked={showFavoritesOnly}
+                        onChange={(e) => setShowFavoritesOnly(e.target.checked)}
+                      />
+                      ⭐ Favorites
+                    </label>
                   </div>
-                ))
-              )}
+                </div>
+
+                {/* Prompt List */}
+                <div className="prompt-list">
+                  {filteredPrompts.length === 0 ? (
+                    <div className="empty-state">No prompts found</div>
+                  ) : (
+                    filteredPrompts.map(prompt => (
+                      <div key={prompt.id} className="prompt-item">
+                        <div className="prompt-header">
+                          <span 
+                            className="favorite-star"
+                            onClick={() => toggleFavorite(prompt.id)}
+                          >
+                            {prompt.favorite ? '⭐' : '☆'}
+                          </span>
+                          <span className="prompt-name">{prompt.name}</span>
+                          <span className="prompt-category">{prompt.category}</span>
+                        </div>
+                        <div className="prompt-text">{prompt.prompt}</div>
+                        <div className="prompt-actions-row">
+                          <button 
+                            className="mini-btn use-btn"
+                            onClick={() => handleUsePrompt(prompt)}
+                          >
+                            Use
+                          </button>
+                          <button 
+                            className="mini-btn edit-btn"
+                            onClick={() => startEdit(prompt)}
+                          >
+                            Edit
+                          </button>
+                          <button 
+                            className="mini-btn delete-btn"
+                            onClick={() => deletePrompt(prompt.id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
