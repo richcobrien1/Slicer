@@ -196,9 +196,9 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt, onModelsFound }) => {
   const handleSubmit = async () => {
     if (!currentPrompt.trim()) return;
 
-    // Check if API key is configured
-    if (!hasAPIKey()) {
-      alert('⚙️ Please configure your OpenAI API key first!');
+    // Check if API key is configured (skip for local provider)
+    if (selectedAI !== 'local' && !hasAPIKey(selectedAI)) {
+      alert(`⚙️ Please configure your ${selectedAI.toUpperCase()} API key first!`);
       setShowSettings(true);
       return;
     }
