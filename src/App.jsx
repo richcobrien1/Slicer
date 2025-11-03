@@ -20,18 +20,22 @@ function App() {
   const galleryRef = useRef(null);
 
   useEffect(() => {
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
+    // Check for existing session (only if Supabase is available)
+    if (supabase) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setUser(session?.user ?? null);
+      });
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        setShowAuth(false);
-      }
-    });
+      // Listen for auth changes
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          setShowAuth(false);
+        }
+      });
+
+      return () => subscription.unsubscribe();
+    }
 
     // Restore selected model from localStorage
     const savedSelectedModel = localStorage.getItem('selectedModel');
@@ -44,17 +48,17 @@ function App() {
     }
 
     // Check for successful Stripe checkout
-    checkCheckoutSuccess().then((result) => {
-      if (result) {
-        alert('🎉 Welcome to Premium! Your subscription is now active.');
-        // Reload gallery to fetch cloud models
-        if (galleryRef.current?.loadModels) {
-          galleryRef.current.loadModels();
+    if (supabase) {
+      checkCheckoutSuccess().then((result) => {
+        if (result) {
+          alert('🎉 Welcome to Premium! Your subscription is now active.');
+          // Reload gallery to fetch cloud models
+          if (galleryRef.current?.loadModels) {
+            galleryRef.current.loadModels();
+          }
         }
-      }
-    });
-
-    return () => subscription.unsubscribe();
+      });
+    }
   }, []);
 
   const handleModelSelect = (model) => {

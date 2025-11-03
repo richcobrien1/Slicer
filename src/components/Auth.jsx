@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from '../utils/supabaseClient';
+import { supabase, isSupabaseEnabled } from '../utils/supabaseClient';
 import './Auth.css';
 
 const Auth = ({ onAuthSuccess }) => {
@@ -13,6 +13,13 @@ const Auth = ({ onAuthSuccess }) => {
     e.preventDefault();
     setLoading(true);
     setMessage('');
+
+    // Check if Supabase is configured
+    if (!isSupabaseEnabled()) {
+      setMessage('⚠️ Authentication is not configured. You can still use the app without signing in!');
+      setLoading(false);
+      return;
+    }
 
     try {
       if (isLogin) {
@@ -47,6 +54,11 @@ const Auth = ({ onAuthSuccess }) => {
   };
 
   const handleGoogleAuth = async () => {
+    if (!isSupabaseEnabled()) {
+      setMessage('⚠️ Authentication is not configured. You can still use the app without signing in!');
+      return;
+    }
+
     setLoading(true);
     setMessage('');
 
