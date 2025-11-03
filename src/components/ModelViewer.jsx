@@ -54,7 +54,7 @@ const Model3D = ({ modelType, fileURL, transformations }) => {
   return mesh;
 };const ModelViewer = forwardRef(({ selectedModel, onViewFile }, ref) => {
   const [transformations, setTransformations] = useState({
-    scale: 0.2,
+    scale: 0.5,
     rotation: [0, 0, 0],
     position: [0, 0, 0],
     color: null,
