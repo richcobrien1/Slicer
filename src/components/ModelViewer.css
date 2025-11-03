@@ -96,6 +96,10 @@
   margin-top: 8px;
   text-align: center;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
 }
 
 .viewer-controls p {
@@ -104,6 +108,30 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.reset-view-btn {
+  background: #ff9800;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.reset-view-btn:hover {
+  background: #f57c00;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+}
+
+.reset-view-btn:active {
+  transform: translateY(0);
 }
 
 @media (max-width: 768px) {

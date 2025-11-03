@@ -65,6 +65,7 @@ const Model3D = ({ modelType, fileURL, transformations }) => {
   });
   const [isDragging, setIsDragging] = useState(false);
   const [tempViewModel, setTempViewModel] = useState(null);
+  const [controlsKey, setControlsKey] = useState(0);
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -201,7 +202,7 @@ const Model3D = ({ modelType, fileURL, transformations }) => {
         {tempViewModel && <span className="temp-badge">Viewing only</span>}
       </div>
       <div className="canvas-container">
-        <Canvas camera={{ position: [4, 4, 4], fov: 50 }}>
+        <Canvas key={controlsKey} camera={{ position: [10, 10, 10], fov: 50 }}>
           <Suspense fallback={null}>
             <ambientLight intensity={0.6} />
             <directionalLight position={[5, 5, 5]} intensity={1.2} color="#ffffff" />
@@ -217,10 +218,11 @@ const Model3D = ({ modelType, fileURL, transformations }) => {
               zoomSpeed={0.5}
               panSpeed={0.5}
               rotateSpeed={0.5}
-              minDistance={1}
+              minDistance={2}
               maxDistance={50}
               enableDamping={true}
               dampingFactor={0.05}
+              target={[0, 0, 0]}
             />
             <gridHelper args={[50, 50, '#888888', '#555555']} />
           </Suspense>
@@ -228,6 +230,9 @@ const Model3D = ({ modelType, fileURL, transformations }) => {
       </div>
       <div className="viewer-controls">
         <p>🖱️ Drag to rotate • Scroll to zoom • Right-click to pan</p>
+        <button className="reset-view-btn" onClick={() => setControlsKey(k => k + 1)}>
+          🔄 Reset View
+        </button>
       </div>
     </div>
   );
