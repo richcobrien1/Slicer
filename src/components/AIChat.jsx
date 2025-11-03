@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import './AIChat.css';
-import { processPrompt, hasAPIKey, getAPIKey, setAPIKey } from '../utils/aiService';
+import { processPrompt, hasAPIKey, getAPIKey, setAPIKey, getAIProvider, setAIProvider } from '../utils/aiService';
 import { searchModels, downloadModel, getSearchAPIKeys, saveSearchAPIKeys } from '../utils/modelSearch';
 
 const AIChat = ({ isOpen, onClose, onSubmitPrompt, onModelsFound }) => {
@@ -9,7 +9,7 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt, onModelsFound }) => {
   const [isListening, setIsListening] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [apiKey, setApiKeyState] = useState('');
-  const [selectedAI, setSelectedAI] = useState('chatgpt');
+  const [selectedAI, setSelectedAI] = useState(getAIProvider());
   const [recognition, setRecognition] = useState(null);
   const [promptLibrary, setPromptLibrary] = useState([
     { id: 1, name: 'Make it Twice as Big', prompt: 'Double the scale of the model on all axes', category: 'Scale', favorite: true },
@@ -87,8 +87,10 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt, onModelsFound }) => {
       setRecognition(recognitionInstance);
     }
 
-    // Load API key on mount
-    setApiKeyState(getAPIKey());
+    // Load API key and provider on mount
+    const provider = getAIProvider();
+    setSelectedAI(provider);
+    setApiKeyState(getAPIKey(provider));
     setSearchAPIKeys(getSearchAPIKeys());
   }, []);
 
@@ -223,10 +225,18 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt, onModelsFound }) => {
 
   const handleSaveAPIKey = () => {
     if (apiKey.trim()) {
-      setAPIKey(apiKey);
-      alert('✅ API key saved!');
+      setAPIKey(apiKey, selectedAI);
+      setAIProvider(selectedAI);
+      alert(`✅ API key saved for ${selectedAI.toUpperCase()}!`);
       setShowSettings(false);
     }
+  };
+
+  const handleProviderChange = (provider) => {
+    setSelectedAI(provider);
+    setAIProvider(provider);
+    // Load the API key for the newly selected provider
+    setApiKeyState(getAPIKey(provider));
   };
 
   const handleSaveSearchAPIKey = (platform, key) => {
@@ -286,25 +296,25 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt, onModelsFound }) => {
               <div className="provider-options">
                 <button 
                   className={`provider-btn ${selectedAI === 'chatgpt' ? 'active' : ''}`}
-                  onClick={() => setSelectedAI('chatgpt')}
+                  onClick={() => handleProviderChange('chatgpt')}
                 >
                   ChatGPT
                 </button>
                 <button 
                   className={`provider-btn ${selectedAI === 'claude' ? 'active' : ''}`}
-                  onClick={() => setSelectedAI('claude')}
+                  onClick={() => handleProviderChange('claude')}
                 >
                   Claude
                 </button>
                 <button 
                   className={`provider-btn ${selectedAI === 'gemini' ? 'active' : ''}`}
-                  onClick={() => setSelectedAI('gemini')}
+                  onClick={() => handleProviderChange('gemini')}
                 >
                   Gemini
                 </button>
                 <button 
                   className={`provider-btn ${selectedAI === 'grok' ? 'active' : ''}`}
-                  onClick={() => setSelectedAI('grok')}
+                  onClick={() => handleProviderChange('grok')}
                 >
                   Grok
                 </button>
@@ -344,7 +354,7 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt, onModelsFound }) => {
                   💾 Save
                 </button>
               </div>
-              {hasAPIKey() && <p className="success-msg">✅ API key configured for {selectedAI === 'chatgpt' ? 'ChatGPT' : selectedAI === 'claude' ? 'Claude' : selectedAI === 'gemini' ? 'Gemini' : 'Grok'}</p>}
+              {hasAPIKey(selectedAI) && <p className="success-msg">✅ API key configured for {selectedAI === 'chatgpt' ? 'ChatGPT' : selectedAI === 'claude' ? 'Claude' : selectedAI === 'gemini' ? 'Gemini' : 'Grok'}</p>}
             </div>
 
             {/* Model Search API Keys */}

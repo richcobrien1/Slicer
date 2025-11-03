@@ -1,26 +1,56 @@
 // AI Service for processing 3D model manipulation prompts
 
-const OPENAI_API_ENDPOINT = 'https://api.openai.com/v1/chat/completions';
+// API endpoints for different providers
+const API_ENDPOINTS = {
+  chatgpt: 'https://api.openai.com/v1/chat/completions',
+  claude: 'https://api.anthropic.com/v1/messages',
+  gemini: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent',
+  grok: 'https://api.x.ai/v1/chat/completions'
+};
+
+// Model names for each provider
+const MODELS = {
+  chatgpt: 'gpt-4o-mini',
+  claude: 'claude-3-5-sonnet-20241022',
+  gemini: 'gemini-pro',
+  grok: 'grok-beta'
+};
 
 /**
- * Get OpenAI API key from localStorage
+ * Get AI provider from localStorage
  */
-export function getAPIKey() {
-  return localStorage.getItem('openai_api_key') || '';
+export function getAIProvider() {
+  return localStorage.getItem('ai_provider') || 'chatgpt';
 }
 
 /**
- * Save OpenAI API key to localStorage
+ * Save AI provider to localStorage
  */
-export function setAPIKey(key) {
-  localStorage.setItem('openai_api_key', key);
+export function setAIProvider(provider) {
+  localStorage.setItem('ai_provider', provider);
 }
 
 /**
- * Check if API key is configured
+ * Get API key for specific provider from localStorage
  */
-export function hasAPIKey() {
-  return !!getAPIKey();
+export function getAPIKey(provider = null) {
+  const selectedProvider = provider || getAIProvider();
+  return localStorage.getItem(`${selectedProvider}_api_key`) || '';
+}
+
+/**
+ * Save API key for specific provider to localStorage
+ */
+export function setAPIKey(key, provider = null) {
+  const selectedProvider = provider || getAIProvider();
+  localStorage.setItem(`${selectedProvider}_api_key`, key);
+}
+
+/**
+ * Check if API key is configured for current provider
+ */
+export function hasAPIKey(provider = null) {
+  return !!getAPIKey(provider);
 }
 
 /**
@@ -29,10 +59,11 @@ export function hasAPIKey() {
  * @returns {Promise<Object>} - Transformation instructions
  */
 export async function processPrompt(prompt) {
-  const apiKey = getAPIKey();
+  const provider = getAIProvider();
+  const apiKey = getAPIKey(provider);
   
   if (!apiKey) {
-    throw new Error('OpenAI API key not configured. Please add your API key in settings.');
+    throw new Error(`${provider.toUpperCase()} API key not configured. Please add your API key in settings.`);
   }
 
   const systemPrompt = `You are an AI assistant that converts natural language commands into 3D model transformation instructions for STL files.
@@ -66,33 +97,101 @@ Examples:
 "rotate 90 degrees on X axis" -> {"operation": "rotate", "parameters": {"axis": "x", "degrees": 90}, "explanation": "Rotating 90 degrees around X axis"}`;
 
   try {
-    const response = await fetch(OPENAI_API_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.3,
-        max_tokens: 300
-      })
-    });
+    let response, data, content;
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error?.message || 'API request failed');
+    if (provider === 'chatgpt' || provider === 'grok') {
+      // OpenAI-compatible API (ChatGPT and Grok)
+      response = await fetch(API_ENDPOINTS[provider], {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: MODELS[provider],
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.3,
+          max_tokens: 300
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error?.message || 'API request failed');
+      }
+
+      data = await response.json();
+      content = data.choices[0].message.content;
+      
+    } else if (provider === 'claude') {
+      // Anthropic Claude API
+      response = await fetch(API_ENDPOINTS[provider], {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: MODELS[provider],
+          max_tokens: 300,
+          messages: [
+            { role: 'user', content: `${systemPrompt}\n\nUser command: ${prompt}` }
+          ],
+          temperature: 0.3
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error?.message || 'API request failed');
+      }
+
+      data = await response.json();
+      content = data.content[0].text;
+      
+    } else if (provider === 'gemini') {
+      // Google Gemini API
+      const endpoint = `${API_ENDPOINTS[provider]}?key=${apiKey}`;
+      response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `${systemPrompt}\n\nUser command: ${prompt}`
+            }]
+          }],
+          generationConfig: {
+            temperature: 0.3,
+            maxOutputTokens: 300
+          }
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error?.message || 'API request failed');
+      }
+
+      data = await response.json();
+      content = data.candidates[0].content.parts[0].text;
     }
-
-    const data = await response.json();
-    const content = data.choices[0].message.content;
     
-    // Parse JSON response
-    const instructions = JSON.parse(content);
+    // Parse JSON response (extract JSON if wrapped in markdown code blocks)
+    let jsonText = content.trim();
+    if (jsonText.startsWith('```json')) {
+      jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    } else if (jsonText.startsWith('```')) {
+      jsonText = jsonText.replace(/```\n?/g, '').trim();
+    }
+    
+    const instructions = JSON.parse(jsonText);
     
     return instructions;
   } catch (error) {
