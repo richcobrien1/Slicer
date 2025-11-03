@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import './VoiceCustomization.css';
-import { processPrompt, hasAPIKey, getAPIKey, setAPIKey } from '../utils/aiService';
+import { processPrompt, hasAPIKey, getAPIKey, setAPIKey, getAIProvider, setAIProvider } from '../utils/aiService';
 import { searchModels, downloadModel, getSearchAPIKeys, saveSearchAPIKeys } from '../utils/modelSearch';
 
 const VoiceCustomization = ({ onCustomizationRequest, onModelsFound }) => {
@@ -14,6 +14,7 @@ const VoiceCustomization = ({ onCustomizationRequest, onModelsFound }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [apiKey, setApiKeyState] = useState('');
+  const [selectedAI, setSelectedAI] = useState(getAIProvider());
   
   // Accordion state
   const [expandedSection, setExpandedSection] = useState('chat'); // 'chat', 'library', or null

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import ModelGallery from './components/ModelGallery';
 import ModelViewer from './components/ModelViewer';
-import VoiceCustomization from './components/VoiceCustomization';
+import AIChat from './components/AIChat';
 import ExportControls from './components/ExportControls';
 import Auth from './components/Auth';
 import UserProfile from './components/UserProfile';
@@ -16,6 +16,7 @@ function App() {
   const [importedModels, setImportedModels] = useState([]);
   const [user, setUser] = useState(null);
   const [showAuth, setShowAuth] = useState(false);
+  const [showAIChat, setShowAIChat] = useState(false);
   const viewerRef = useRef(null);
   const galleryRef = useRef(null);
 
@@ -228,16 +229,24 @@ function App() {
         </div>
 
         <div className="right-panel">
-          <VoiceCustomization 
-            onCustomizationRequest={handleCustomization}
-            onModelsFound={handleModelsFound}
-          />
+          <button className="ai-chat-trigger" onClick={() => setShowAIChat(true)}>
+            🤖 AI Assistant
+          </button>
           <ExportControls 
             selectedModel={selectedModel}
             onModelImport={handleModelImport}
           />
         </div>
       </div>
+
+      {showAIChat && (
+        <AIChat
+          isOpen={showAIChat}
+          onClose={() => setShowAIChat(false)}
+          onSubmitPrompt={handleCustomization}
+          onModelsFound={handleModelsFound}
+        />
+      )}
     </div>
   );
 }

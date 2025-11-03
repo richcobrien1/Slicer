@@ -129,6 +129,32 @@ body {
   overflow: hidden;
 }
 
+.ai-chat-trigger {
+  padding: 15px 20px;
+  background: linear-gradient(135deg, #ff9800 0%, #ff5722 100%);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.ai-chat-trigger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 152, 0, 0.5);
+  background: linear-gradient(135deg, #ffa726 0%, #ff6f3c 100%);
+}
+
+.ai-chat-trigger:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(255, 152, 0, 0.4);
+}
+
 .left-panel {
   background: #2a2a2a;
   border-radius: 4px;
