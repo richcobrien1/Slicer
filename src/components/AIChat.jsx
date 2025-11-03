@@ -564,7 +564,6 @@ const AIChat = ({ onSubmitPrompt, onModelsFound, showNotification }) => {
             </div>
           </div>
         )}
-      </div>
     </div>
   );
 };
