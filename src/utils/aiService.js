@@ -5,7 +5,8 @@ const API_ENDPOINTS = {
   chatgpt: 'https://api.openai.com/v1/chat/completions',
   claude: 'https://api.anthropic.com/v1/messages',
   gemini: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent',
-  grok: 'https://api.x.ai/v1/chat/completions'
+  grok: 'https://api.x.ai/v1/chat/completions',
+  huggingface: 'https://api-inference.huggingface.co/models/meta-llama/Llama-3.2-3B-Instruct/v1/chat/completions'
 };
 
 // Model names for each provider
@@ -13,7 +14,8 @@ const MODELS = {
   chatgpt: 'gpt-4o-mini',
   claude: 'claude-3-5-sonnet-20241022',
   gemini: 'gemini-pro',
-  grok: 'grok-beta'
+  grok: 'grok-beta',
+  huggingface: 'meta-llama/Llama-3.2-3B-Instruct'
 };
 
 /**
@@ -99,8 +101,8 @@ Examples:
   try {
     let response, data, content;
 
-    if (provider === 'chatgpt' || provider === 'grok') {
-      // OpenAI-compatible API (ChatGPT and Grok)
+    if (provider === 'chatgpt' || provider === 'grok' || provider === 'huggingface') {
+      // OpenAI-compatible API (ChatGPT, Grok, and Hugging Face)
       response = await fetch(API_ENDPOINTS[provider], {
         method: 'POST',
         headers: {

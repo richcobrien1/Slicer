@@ -295,6 +295,12 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt, onModelsFound }) => {
               <label>Select AI Provider:</label>
               <div className="provider-options">
                 <button 
+                  className={`provider-btn ${selectedAI === 'huggingface' ? 'active' : ''}`}
+                  onClick={() => handleProviderChange('huggingface')}
+                >
+                  🆓 Hugging Face (Free)
+                </button>
+                <button 
                   className={`provider-btn ${selectedAI === 'chatgpt' ? 'active' : ''}`}
                   onClick={() => handleProviderChange('chatgpt')}
                 >
@@ -324,6 +330,9 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt, onModelsFound }) => {
             {/* API Key Input */}
             <div className="api-key-section">
               <p className="settings-info">
+                {selectedAI === 'huggingface' && (
+                  <>🆓 FREE API! Get your key from <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener noreferrer">Hugging Face</a> (Create a free account, then generate a token)</>
+                )}
                 {selectedAI === 'chatgpt' && (
                   <>Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">OpenAI Platform</a></>
                 )}
@@ -343,6 +352,7 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt, onModelsFound }) => {
                   value={apiKey}
                   onChange={(e) => setApiKeyState(e.target.value)}
                   placeholder={
+                    selectedAI === 'huggingface' ? 'hf_...' :
                     selectedAI === 'chatgpt' ? 'sk-...' :
                     selectedAI === 'claude' ? 'sk-ant-...' :
                     selectedAI === 'gemini' ? 'AIza...' :
@@ -354,7 +364,7 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt, onModelsFound }) => {
                   💾 Save
                 </button>
               </div>
-              {hasAPIKey(selectedAI) && <p className="success-msg">✅ API key configured for {selectedAI === 'chatgpt' ? 'ChatGPT' : selectedAI === 'claude' ? 'Claude' : selectedAI === 'gemini' ? 'Gemini' : 'Grok'}</p>}
+              {hasAPIKey(selectedAI) && <p className="success-msg">✅ API key configured for {selectedAI === 'huggingface' ? 'Hugging Face (Free)' : selectedAI === 'chatgpt' ? 'ChatGPT' : selectedAI === 'claude' ? 'Claude' : selectedAI === 'gemini' ? 'Gemini' : 'Grok'}</p>}
             </div>
 
             {/* Model Search API Keys */}
