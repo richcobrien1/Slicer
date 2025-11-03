@@ -295,10 +295,10 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt, onModelsFound }) => {
               <label>Select AI Provider:</label>
               <div className="provider-options">
                 <button 
-                  className={`provider-btn ${selectedAI === 'huggingface' ? 'active' : ''}`}
-                  onClick={() => handleProviderChange('huggingface')}
+                  className={`provider-btn ${selectedAI === 'local' ? 'active' : ''}`}
+                  onClick={() => handleProviderChange('local')}
                 >
-                  🆓 Hugging Face (Free)
+                  🆓 Local (Free)
                 </button>
                 <button 
                   className={`provider-btn ${selectedAI === 'chatgpt' ? 'active' : ''}`}
@@ -330,8 +330,8 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt, onModelsFound }) => {
             {/* API Key Input */}
             <div className="api-key-section">
               <p className="settings-info">
-                {selectedAI === 'huggingface' && (
-                  <>🆓 FREE API! Get your key from <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener noreferrer">Hugging Face</a> (Create a free account, then generate a token)</>
+                {selectedAI === 'local' && (
+                  <>🆓 FREE! No API key needed. Uses local pattern matching for basic commands: colors, scaling, rotation, bases, etc.</>
                 )}
                 {selectedAI === 'chatgpt' && (
                   <>Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">OpenAI Platform</a></>
@@ -346,25 +346,29 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt, onModelsFound }) => {
                   <>Get your API key from <a href="https://console.x.ai/" target="_blank" rel="noopener noreferrer">xAI Console</a></>
                 )}
               </p>
-              <div className="api-key-input-group">
-                <input
-                  type="password"
-                  value={apiKey}
-                  onChange={(e) => setApiKeyState(e.target.value)}
-                  placeholder={
-                    selectedAI === 'huggingface' ? 'hf_...' :
-                    selectedAI === 'chatgpt' ? 'sk-...' :
-                    selectedAI === 'claude' ? 'sk-ant-...' :
-                    selectedAI === 'gemini' ? 'AIza...' :
-                    'xai-...'
-                  }
-                  className="api-key-input"
-                />
-                <button className="action-btn primary" onClick={handleSaveAPIKey}>
-                  💾 Save
-                </button>
-              </div>
-              {hasAPIKey(selectedAI) && <p className="success-msg">✅ API key configured for {selectedAI === 'huggingface' ? 'Hugging Face (Free)' : selectedAI === 'chatgpt' ? 'ChatGPT' : selectedAI === 'claude' ? 'Claude' : selectedAI === 'gemini' ? 'Gemini' : 'Grok'}</p>}
+              {selectedAI !== 'local' && (
+                <>
+                  <div className="api-key-input-group">
+                    <input
+                      type="password"
+                      value={apiKey}
+                      onChange={(e) => setApiKeyState(e.target.value)}
+                      placeholder={
+                        selectedAI === 'chatgpt' ? 'sk-...' :
+                        selectedAI === 'claude' ? 'sk-ant-...' :
+                        selectedAI === 'gemini' ? 'AIza...' :
+                        'xai-...'
+                      }
+                      className="api-key-input"
+                    />
+                    <button className="action-btn primary" onClick={handleSaveAPIKey}>
+                      💾 Save
+                    </button>
+                  </div>
+                  {hasAPIKey(selectedAI) && <p className="success-msg">✅ API key configured for {selectedAI === 'chatgpt' ? 'ChatGPT' : selectedAI === 'claude' ? 'Claude' : selectedAI === 'gemini' ? 'Gemini' : 'Grok'}</p>}
+                </>
+              )}
+              {selectedAI === 'local' && <p className="success-msg">✅ Local mode is ready to use!</p>}
             </div>
 
             {/* Model Search API Keys */}

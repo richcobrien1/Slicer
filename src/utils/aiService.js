@@ -2,27 +2,27 @@
 
 // API endpoints for different providers
 const API_ENDPOINTS = {
+  local: null, // No API needed for local pattern matching
   chatgpt: 'https://api.openai.com/v1/chat/completions',
   claude: 'https://api.anthropic.com/v1/messages',
   gemini: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent',
-  grok: 'https://api.x.ai/v1/chat/completions',
-  huggingface: 'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3'
+  grok: 'https://api.x.ai/v1/chat/completions'
 };
 
 // Model names for each provider
 const MODELS = {
+  local: 'Local Pattern Matching (Free)',
   chatgpt: 'gpt-4o-mini',
   claude: 'claude-3-5-sonnet-20241022',
   gemini: 'gemini-pro',
-  grok: 'grok-beta',
-  huggingface: 'mistralai/Mistral-7B-Instruct-v0.3'
+  grok: 'grok-beta'
 };
 
 /**
  * Get AI provider from localStorage
  */
 export function getAIProvider() {
-  return localStorage.getItem('ai_provider') || 'chatgpt';
+  return localStorage.getItem('ai_provider') || 'local';
 }
 
 /**
@@ -56,12 +56,70 @@ export function hasAPIKey(provider = null) {
 }
 
 /**
+ * Local pattern matching for basic commands (no API needed)
+ */
+function processLocalPrompt(prompt) {
+  const lower = prompt.toLowerCase();
+  
+  // Color changes
+  if (lower.includes('red')) return { operation: 'color', parameters: { color: 'red' }, explanation: 'Changing model color to red' };
+  if (lower.includes('blue')) return { operation: 'color', parameters: { color: 'blue' }, explanation: 'Changing model color to blue' };
+  if (lower.includes('green')) return { operation: 'color', parameters: { color: 'green' }, explanation: 'Changing model color to green' };
+  if (lower.includes('yellow')) return { operation: 'color', parameters: { color: 'yellow' }, explanation: 'Changing model color to yellow' };
+  if (lower.includes('orange')) return { operation: 'color', parameters: { color: 'orange' }, explanation: 'Changing model color to orange' };
+  if (lower.includes('purple')) return { operation: 'color', parameters: { color: 'purple' }, explanation: 'Changing model color to purple' };
+  if (lower.includes('pink')) return { operation: 'color', parameters: { color: 'pink' }, explanation: 'Changing model color to pink' };
+  if (lower.includes('white')) return { operation: 'color', parameters: { color: 'white' }, explanation: 'Changing model color to white' };
+  if (lower.includes('black')) return { operation: 'color', parameters: { color: 'black' }, explanation: 'Changing model color to black' };
+  if (lower.includes('gray') || lower.includes('grey')) return { operation: 'color', parameters: { color: 'gray' }, explanation: 'Changing model color to gray' };
+  
+  // Scale changes
+  if (lower.includes('twice') || lower.includes('2x') || lower.includes('double')) return { operation: 'scale', parameters: { factor: 2.0 }, explanation: 'Scaling model to 200% size' };
+  if (lower.includes('triple') || lower.includes('3x')) return { operation: 'scale', parameters: { factor: 3.0 }, explanation: 'Scaling model to 300% size' };
+  if (lower.includes('half') || lower.includes('50%')) return { operation: 'scale', parameters: { factor: 0.5 }, explanation: 'Scaling model to 50% size' };
+  if (lower.includes('bigger')) return { operation: 'scale', parameters: { factor: 1.5 }, explanation: 'Making model 50% bigger' };
+  if (lower.includes('smaller')) return { operation: 'scale', parameters: { factor: 0.75 }, explanation: 'Making model 25% smaller' };
+  
+  // Rotation
+  if (lower.includes('rotate') && lower.includes('90')) {
+    if (lower.includes('x')) return { operation: 'rotate', parameters: { axis: 'x', degrees: 90 }, explanation: 'Rotating 90° around X axis' };
+    if (lower.includes('y')) return { operation: 'rotate', parameters: { axis: 'y', degrees: 90 }, explanation: 'Rotating 90° around Y axis' };
+    if (lower.includes('z')) return { operation: 'rotate', parameters: { axis: 'z', degrees: 90 }, explanation: 'Rotating 90° around Z axis' };
+  }
+  if (lower.includes('rotate') && lower.includes('180')) {
+    return { operation: 'rotate', parameters: { axis: 'y', degrees: 180 }, explanation: 'Rotating 180° around Y axis' };
+  }
+  
+  // Base platform
+  if (lower.includes('base') || lower.includes('platform')) {
+    if (lower.includes('circle')) return { operation: 'addBase', parameters: { type: 'circle', thickness: 2, margin: 5 }, explanation: 'Adding circular base platform' };
+    if (lower.includes('hex')) return { operation: 'addBase', parameters: { type: 'hexagon', thickness: 2, margin: 5 }, explanation: 'Adding hexagonal base platform' };
+    return { operation: 'addBase', parameters: { type: 'rectangle', thickness: 2, margin: 5 }, explanation: 'Adding rectangular base platform' };
+  }
+  
+  // Mirror
+  if (lower.includes('mirror')) {
+    if (lower.includes('x')) return { operation: 'mirror', parameters: { axis: 'x' }, explanation: 'Mirroring along X axis' };
+    if (lower.includes('y')) return { operation: 'mirror', parameters: { axis: 'y' }, explanation: 'Mirroring along Y axis' };
+    if (lower.includes('z')) return { operation: 'mirror', parameters: { axis: 'z' }, explanation: 'Mirroring along Z axis' };
+  }
+  
+  return { operation: 'modify', parameters: { description: prompt }, explanation: 'Sorry, I didn\'t understand that command. Try: "make it red", "twice as big", "add a base", or "rotate 90 degrees"' };
+}
+
+/**
  * Process a natural language prompt and convert it to 3D transformation instructions
  * @param {string} prompt - Natural language command (e.g., "make it twice as big")
  * @returns {Promise<Object>} - Transformation instructions
  */
 export async function processPrompt(prompt) {
   const provider = getAIProvider();
+  
+  // Use local pattern matching if 'local' provider is selected
+  if (provider === 'local') {
+    return processLocalPrompt(prompt);
+  }
+  
   const apiKey = getAPIKey(provider);
   
   if (!apiKey) {
@@ -101,34 +159,7 @@ Examples:
   try {
     let response, data, content;
 
-    if (provider === 'huggingface') {
-      // Hugging Face Inference API (different format)
-      response = await fetch(API_ENDPOINTS[provider], {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          inputs: `<s>[INST] ${systemPrompt}\n\n${prompt} [/INST]`,
-          parameters: {
-            max_new_tokens: 500,
-            temperature: 0.7,
-            return_full_text: false
-          }
-        })
-      });
-
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`Hugging Face API error: ${error}`);
-      }
-
-      data = await response.json();
-      // Hugging Face returns array of generated text objects
-      content = Array.isArray(data) ? data[0].generated_text : data.generated_text;
-      
-    } else if (provider === 'chatgpt' || provider === 'grok') {
+    if (provider === 'chatgpt' || provider === 'grok') {
       // OpenAI-compatible API (ChatGPT and Grok)
       response = await fetch(API_ENDPOINTS[provider], {
         method: 'POST',
