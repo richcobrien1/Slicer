@@ -241,9 +241,15 @@ Examples:
 
       data = await response.json();
       content = data.candidates[0].content.parts[0].text;
+    } else {
+      throw new Error(`Unknown provider: ${provider}. Please select a valid AI provider.`);
     }
     
     // Parse JSON response (extract JSON if wrapped in markdown code blocks)
+    if (!content) {
+      throw new Error('No response from AI provider');
+    }
+    
     let jsonText = content.trim();
     if (jsonText.startsWith('```json')) {
       jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
