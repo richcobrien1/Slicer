@@ -29,21 +29,30 @@ const STLModel = ({ url, transformations }) => {
 };
 
 const Model3D = ({ modelType, fileURL, transformations }) => {
-  const stlPath = fileURL || `/models/${modelType.toLowerCase()}.stl`;
+  const url = fileURL || `/models/${modelType.toLowerCase().replace(/ /g, '_')}.stl`;
+  const geometry = useLoader(STLLoader, url);
   
-  // Apply transformations as scale/rotation/position
-  const scale = transformations.scale || 0.05;
-  const rotation = transformations.rotation || [0, 0, 0];
-  const position = transformations.position || [0, 0, 0];
-
-  return (
-    <group scale={scale} rotation={rotation} position={position}>
-      <STLModel url={stlPath} transformations={transformations} />
-    </group>
+  // Center the geometry
+  geometry.center();
+  
+  // Use color from transformations if available, otherwise default gray
+  const modelColor = transformations?.color || "#6B6B6B";
+  
+  // Create mesh
+  const mesh = (
+    <mesh geometry={geometry}>
+      <meshStandardMaterial 
+        color={modelColor}
+        metalness={0.4} 
+        roughness={0.6}
+        emissive="#3A3A3A"
+        emissiveIntensity={0.2}
+      />
+    </mesh>
   );
-};
-
-const ModelViewer = forwardRef(({ selectedModel, onViewFile }, ref) => {
+  
+  return mesh;
+};const ModelViewer = forwardRef(({ selectedModel, onViewFile }, ref) => {
   const [transformations, setTransformations] = useState({
     scale: 0.05,
     rotation: [0, 0, 0],
@@ -129,6 +138,10 @@ const ModelViewer = forwardRef(({ selectedModel, onViewFile }, ref) => {
               prev.position[1] + (parameters.y || 0) * 0.01,
               prev.position[2] + (parameters.z || 0) * 0.01
             ];
+            break;
+          case 'color':
+            // Store color to apply to mesh material
+            newTransforms.color = parameters.color;
             break;
           default:
             console.warn('Operation not implemented in viewer:', operation);
