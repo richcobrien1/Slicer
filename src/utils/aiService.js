@@ -6,7 +6,7 @@ const API_ENDPOINTS = {
   claude: 'https://api.anthropic.com/v1/messages',
   gemini: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent',
   grok: 'https://api.x.ai/v1/chat/completions',
-  huggingface: 'https://api-inference.huggingface.co/models/meta-llama/Llama-3.2-3B-Instruct/v1/chat/completions'
+  huggingface: 'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3'
 };
 
 // Model names for each provider
@@ -15,7 +15,7 @@ const MODELS = {
   claude: 'claude-3-5-sonnet-20241022',
   gemini: 'gemini-pro',
   grok: 'grok-beta',
-  huggingface: 'meta-llama/Llama-3.2-3B-Instruct'
+  huggingface: 'mistralai/Mistral-7B-Instruct-v0.3'
 };
 
 /**
@@ -101,8 +101,35 @@ Examples:
   try {
     let response, data, content;
 
-    if (provider === 'chatgpt' || provider === 'grok' || provider === 'huggingface') {
-      // OpenAI-compatible API (ChatGPT, Grok, and Hugging Face)
+    if (provider === 'huggingface') {
+      // Hugging Face Inference API (different format)
+      response = await fetch(API_ENDPOINTS[provider], {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          inputs: `<s>[INST] ${systemPrompt}\n\n${prompt} [/INST]`,
+          parameters: {
+            max_new_tokens: 500,
+            temperature: 0.7,
+            return_full_text: false
+          }
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Hugging Face API error: ${error}`);
+      }
+
+      data = await response.json();
+      // Hugging Face returns array of generated text objects
+      content = Array.isArray(data) ? data[0].generated_text : data.generated_text;
+      
+    } else if (provider === 'chatgpt' || provider === 'grok') {
+      // OpenAI-compatible API (ChatGPT and Grok)
       response = await fetch(API_ENDPOINTS[provider], {
         method: 'POST',
         headers: {
