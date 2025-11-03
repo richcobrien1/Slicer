@@ -53,12 +53,17 @@ Available operations:
 - support: {angle: number, density: number} - Adds support structures (angle in degrees, density 0-1)
 - rotate: {axis: "x"|"y"|"z", degrees: number} - Rotates model
 - move: {x: number, y: number, z: number} - Moves model in mm
+- color: {color: string} - Changes model color (hex "#FF0000" or name "red")
+- resize: {width: number, height: number, depth: number} - Resize to specific dimensions in mm (optional params)
+- addBase: {type: "rectangle"|"circle"|"hexagon", thickness: number, margin: number} - Adds base platform
 - modify: {description: string} - For complex operations, describe what to do
 
 Examples:
 "make it twice as big" -> {"operation": "scale", "parameters": {"factor": 2.0}, "explanation": "Scaling model to 200% size"}
-"hollow it with 2mm walls" -> {"operation": "hollow", "parameters": {"wallThickness": 2}, "explanation": "Creating hollow interior with 2mm walls"}
-"flip it horizontally" -> {"operation": "mirror", "parameters": {"axis": "x"}, "explanation": "Mirroring model along X axis"}`;
+"make it red" -> {"operation": "color", "parameters": {"color": "red"}, "explanation": "Changing model color to red"}
+"add a rectangular base" -> {"operation": "addBase", "parameters": {"type": "rectangle", "thickness": 2, "margin": 5}, "explanation": "Adding rectangular base platform"}
+"make it 50mm wide" -> {"operation": "resize", "parameters": {"width": 50}, "explanation": "Resizing model to 50mm width"}
+"rotate 90 degrees on X axis" -> {"operation": "rotate", "parameters": {"axis": "x", "degrees": 90}, "explanation": "Rotating 90 degrees around X axis"}`;
 
   try {
     const response = await fetch(OPENAI_API_ENDPOINT, {
@@ -104,7 +109,7 @@ export function validateInstructions(instructions) {
     throw new Error('Invalid transformation instructions');
   }
   
-  const validOperations = ['scale', 'hollow', 'mirror', 'support', 'rotate', 'move', 'modify'];
+  const validOperations = ['scale', 'hollow', 'mirror', 'support', 'rotate', 'move', 'modify', 'color', 'resize', 'addBase'];
   if (!validOperations.includes(instructions.operation)) {
     throw new Error(`Unknown operation: ${instructions.operation}`);
   }

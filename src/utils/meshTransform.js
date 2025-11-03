@@ -27,6 +27,12 @@ export function applyTransformation(mesh, instructions) {
       return moveMesh(mesh, parameters);
     case 'support':
       return addSupports(mesh, parameters);
+    case 'color':
+      return colorMesh(mesh, parameters);
+    case 'resize':
+      return resizeMesh(mesh, parameters);
+    case 'addBase':
+      return addBasePlatform(mesh, parameters);
     default:
       throw new Error(`Operation not implemented: ${operation}`);
   }
@@ -140,6 +146,98 @@ function getBoundingSize(mesh) {
   const size = new THREE.Vector3();
   box.getSize(size);
   return Math.max(size.x, size.y, size.z);
+}
+
+/**
+ * Change mesh color
+ */
+function colorMesh(mesh, { color }) {
+  const newMesh = mesh.clone();
+  
+  // Parse color string to THREE.Color
+  let threeColor;
+  if (color.startsWith('#')) {
+    threeColor = new THREE.Color(color);
+  } else {
+    // Try to parse named colors
+    threeColor = new THREE.Color(color.toLowerCase());
+  }
+  
+  // Apply color to material
+  if (newMesh.material) {
+    newMesh.material = newMesh.material.clone();
+    newMesh.material.color = threeColor;
+  }
+  
+  return newMesh;
+}
+
+/**
+ * Resize mesh to specific dimensions
+ */
+function resizeMesh(mesh, { width, height, depth }) {
+  const newMesh = mesh.clone();
+  const box = new THREE.Box3().setFromObject(mesh);
+  const currentSize = new THREE.Vector3();
+  box.getSize(currentSize);
+  
+  const scaleX = width ? width / currentSize.x : 1;
+  const scaleY = height ? height / currentSize.y : 1;
+  const scaleZ = depth ? depth / currentSize.z : 1;
+  
+  newMesh.geometry = newMesh.geometry.clone();
+  newMesh.geometry.scale(scaleX, scaleY, scaleZ);
+  newMesh.scale.set(scaleX, scaleY, scaleZ);
+  
+  return newMesh;
+}
+
+/**
+ * Add base platform to model
+ */
+function addBasePlatform(mesh, { type = 'rectangle', thickness = 2, margin = 5 }) {
+  const box = new THREE.Box3().setFromObject(mesh);
+  const size = new THREE.Vector3();
+  box.getSize(size);
+  const center = new THREE.Vector3();
+  box.getCenter(center);
+  
+  let baseGeometry;
+  
+  if (type === 'rectangle' || type === 'square') {
+    // Create rectangular base
+    const baseWidth = size.x + margin * 2;
+    const baseDepth = size.z + margin * 2;
+    baseGeometry = new THREE.BoxGeometry(baseWidth, thickness, baseDepth);
+  } else if (type === 'circle' || type === 'round') {
+    // Create circular base
+    const radius = Math.max(size.x, size.z) / 2 + margin;
+    baseGeometry = new THREE.CylinderGeometry(radius, radius, thickness, 32);
+  } else if (type === 'hexagon') {
+    // Create hexagonal base
+    const radius = Math.max(size.x, size.z) / 2 + margin;
+    baseGeometry = new THREE.CylinderGeometry(radius, radius, thickness, 6);
+  }
+  
+  // Create base mesh
+  const baseMaterial = mesh.material ? mesh.material.clone() : new THREE.MeshPhongMaterial({ color: 0x808080 });
+  const baseMesh = new THREE.Mesh(baseGeometry, baseMaterial);
+  
+  // Position base at bottom of model
+  baseMesh.position.set(center.x, box.min.y - thickness / 2, center.z);
+  
+  // Create group containing both model and base
+  const group = new THREE.Group();
+  const modelClone = mesh.clone();
+  group.add(modelClone);
+  group.add(baseMesh);
+  
+  // Return the group as a mesh-like object
+  group.isMesh = true;
+  group.geometry = modelClone.geometry;
+  group.material = modelClone.material;
+  
+  return group;
 }
 
 /**

@@ -14,10 +14,15 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt, onModelsFound }) => {
   const [promptLibrary, setPromptLibrary] = useState([
     { id: 1, name: 'Make it Twice as Big', prompt: 'Double the scale of the model on all axes', category: 'Scale', favorite: true },
     { id: 2, name: 'Make it Smaller', prompt: 'Reduce the model size by 50%', category: 'Scale', favorite: false },
-    { id: 3, name: 'Add Support Structures', prompt: 'Generate support structures for overhangs greater than 45 degrees', category: 'Support', favorite: true },
-    { id: 4, name: 'Optimize for Printing', prompt: 'Analyze and optimize the model orientation for minimal supports and best print quality', category: 'Optimization', favorite: false },
-    { id: 5, name: 'Hollow with Walls', prompt: 'Create a hollow version with 2mm wall thickness', category: 'Modification', favorite: false },
-    { id: 6, name: 'Mirror Model', prompt: 'Create a mirrored version along the X axis', category: 'Transform', favorite: false },
+    { id: 3, name: 'Change Color to Red', prompt: 'Change the model color to red', category: 'Color', favorite: true },
+    { id: 4, name: 'Change Color to Blue', prompt: 'Make it blue', category: 'Color', favorite: false },
+    { id: 5, name: 'Add Rectangular Base', prompt: 'Add a rectangular base platform', category: 'Base', favorite: true },
+    { id: 6, name: 'Add Round Base', prompt: 'Add a circular base with 5mm margin', category: 'Base', favorite: false },
+    { id: 7, name: 'Add Support Structures', prompt: 'Generate support structures for overhangs greater than 45 degrees', category: 'Support', favorite: true },
+    { id: 8, name: 'Hollow with Walls', prompt: 'Create a hollow version with 2mm wall thickness', category: 'Modification', favorite: false },
+    { id: 9, name: 'Mirror Model', prompt: 'Create a mirrored version along the X axis', category: 'Transform', favorite: false },
+    { id: 10, name: 'Rotate 90 Degrees', prompt: 'Rotate the model 90 degrees on the Z axis', category: 'Transform', favorite: false },
+    { id: 11, name: 'Resize to 100mm', prompt: 'Make it 100mm wide', category: 'Scale', favorite: false },
   ]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('All');
@@ -27,7 +32,7 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt, onModelsFound }) => {
   const [searchAPIKeys, setSearchAPIKeys] = useState({});
   const [isSearching, setIsSearching] = useState(false);
 
-  const categories = ['All', 'Scale', 'Support', 'Optimization', 'Modification', 'Transform'];
+  const categories = ['All', 'Scale', 'Color', 'Base', 'Support', 'Modification', 'Transform'];
 
   const filteredPrompts = promptLibrary.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -94,8 +99,22 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt, onModelsFound }) => {
       'need a', 'want a', 'show me', 'fetch', 'grab', 'pull'
     ];
 
+    // Keywords that indicate model modification intent
+    const modifyKeywords = [
+      'make it', 'change', 'modify', 'scale', 'resize', 'color', 'paint',
+      'bigger', 'smaller', 'rotate', 'flip', 'mirror', 'add base', 'add a base',
+      'hollow', 'support'
+    ];
+
     const lowerText = text.toLowerCase();
     const isSearchIntent = searchKeywords.some(keyword => lowerText.includes(keyword));
+    const isModifyIntent = modifyKeywords.some(keyword => lowerText.includes(keyword));
+
+    if (isModifyIntent && !isSearchIntent) {
+      // This is a modification command, let it be processed by AI
+      console.log('🔧 Detected modification intent, will process with AI');
+      return;
+    }
 
     if (isSearchIntent) {
       // Extract search query - remove common command words
