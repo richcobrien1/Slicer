@@ -54,7 +54,7 @@ const Model3D = ({ modelType, fileURL, transformations }) => {
   return mesh;
 };const ModelViewer = forwardRef(({ selectedModel, onViewFile }, ref) => {
   const [transformations, setTransformations] = useState({
-    scale: 0.5,
+    scale: 0.1,
     rotation: [0, 0, 0],
     position: [0, 0, 0],
     color: null,
@@ -218,11 +218,11 @@ const Model3D = ({ modelType, fileURL, transformations }) => {
               panSpeed={0.5}
               rotateSpeed={0.5}
               minDistance={1}
-              maxDistance={20}
+              maxDistance={50}
               enableDamping={true}
               dampingFactor={0.05}
             />
-            <gridHelper args={[5, 20, '#888888', '#555555']} />
+            <gridHelper args={[50, 50, '#888888', '#555555']} />
           </Suspense>
         </Canvas>
       </div>
