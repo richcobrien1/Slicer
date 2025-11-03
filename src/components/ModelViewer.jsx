@@ -38,9 +38,19 @@ const Model3D = ({ modelType, fileURL, transformations }) => {
   // Use color from transformations if available, otherwise default gray
   const modelColor = transformations?.color || "#6B6B6B";
   
+  // Apply transformations
+  const scale = transformations?.scale || 1;
+  const rotation = transformations?.rotation || [0, 0, 0];
+  const position = transformations?.position || [0, 0, 0];
+  
   // Create mesh
   const mesh = (
-    <mesh geometry={geometry}>
+    <mesh 
+      geometry={geometry}
+      scale={[scale, scale, scale]}
+      rotation={rotation}
+      position={position}
+    >
       <meshStandardMaterial 
         color={modelColor}
         metalness={0.4} 
