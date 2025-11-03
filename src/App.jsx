@@ -16,7 +16,7 @@ function App() {
   const [importedModels, setImportedModels] = useState([]);
   const [user, setUser] = useState(null);
   const [showAuth, setShowAuth] = useState(false);
-  const [showAIChat, setShowAIChat] = useState(false);
+  const [notification, setNotification] = useState(null);
   const viewerRef = useRef(null);
   const galleryRef = useRef(null);
 
@@ -143,6 +143,11 @@ function App() {
     console.log(`Added ${newModels.length} search results to gallery`);
   };
 
+  const showNotification = (message, type = 'success') => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 4000);
+  };
+
   const handleCustomization = (instructions) => {
     // Handle both old string format and new AI instructions format
     const displayText = typeof instructions === 'string' 
@@ -162,6 +167,7 @@ function App() {
       // Notify ModelViewer component to apply transformation
       if (viewerRef.current && viewerRef.current.applyTransformation) {
         viewerRef.current.applyTransformation(instructions);
+        showNotification(`✅ ${instructions.explanation}`, 'success');
       }
     } else {
       // Legacy alert for old string-based requests
@@ -172,6 +178,12 @@ function App() {
   return (
     <div className="app">
       {showAuth && <Auth onAuthSuccess={() => setShowAuth(false)} />}
+      
+      {notification && (
+        <div className={`notification ${notification.type}`}>
+          {notification.message}
+        </div>
+      )}
       
       <header className="app-header">
         <div className="header-icon">
@@ -229,24 +241,17 @@ function App() {
         </div>
 
         <div className="right-panel">
-          <button className="ai-chat-trigger" onClick={() => setShowAIChat(true)}>
-            🤖 AI Assistant
-          </button>
+          <AIChat
+            onSubmitPrompt={handleCustomization}
+            onModelsFound={handleModelsFound}
+            showNotification={showNotification}
+          />
           <ExportControls 
             selectedModel={selectedModel}
             onModelImport={handleModelImport}
           />
         </div>
       </div>
-
-      {showAIChat && (
-        <AIChat
-          isOpen={showAIChat}
-          onClose={() => setShowAIChat(false)}
-          onSubmitPrompt={handleCustomization}
-          onModelsFound={handleModelsFound}
-        />
-      )}
     </div>
   );
 }

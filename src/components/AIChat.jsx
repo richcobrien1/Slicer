@@ -3,11 +3,13 @@ import './AIChat.css';
 import { processPrompt, hasAPIKey, getAPIKey, setAPIKey, getAIProvider, setAIProvider } from '../utils/aiService';
 import { searchModels, downloadModel, getSearchAPIKeys, saveSearchAPIKeys } from '../utils/modelSearch';
 
-const AIChat = ({ isOpen, onClose, onSubmitPrompt, onModelsFound }) => {
+const AIChat = ({ onSubmitPrompt, onModelsFound, showNotification }) => {
   const [currentPrompt, setCurrentPrompt] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showPromptInput, setShowPromptInput] = useState(true);
+  const [showLibrary, setShowLibrary] = useState(false);
   const [apiKey, setApiKeyState] = useState('');
   const [selectedAI, setSelectedAI] = useState(getAIProvider());
   const [recognition, setRecognition] = useState(null);
@@ -54,7 +56,7 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt, onModelsFound }) => {
     };
 
     setPromptLibrary([...promptLibrary, newPrompt]);
-    alert('✅ Prompt saved to library!');
+    if (showNotification) showNotification('✅ Prompt saved to library!', 'success');
   };
 
   // Initialize speech recognition
@@ -145,7 +147,7 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt, onModelsFound }) => {
       });
 
       if (results.length === 0) {
-        alert(`❌ No models found for "${query}". Try different search terms.`);
+        if (showNotification) showNotification(`❌ No models found for "${query}". Try different search terms.`, 'error');
         return;
       }
 
@@ -163,11 +165,11 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt, onModelsFound }) => {
       // Notify parent component to add models to gallery
       if (onModelsFound && modelsToImport.length > 0) {
         onModelsFound(modelsToImport);
-        alert(`✅ Found ${modelsToImport.length} models for "${query}"! Check the model gallery.`);
+        if (showNotification) showNotification(`✅ Found ${modelsToImport.length} models for "${query}"! Check the model gallery.`, 'success');
       }
     } catch (error) {
       console.error('Model search error:', error);
-      alert(`❌ Search failed: ${error.message}`);
+      if (showNotification) showNotification(`❌ Search failed: ${error.message}`, 'error');
     } finally {
       setIsSearching(false);
     }
@@ -178,7 +180,7 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt, onModelsFound }) => {
       setIsListening(true);
       recognition.start();
     } else {
-      alert('Speech recognition not supported in this browser. Try Chrome or Edge.');
+      if (showNotification) showNotification('Speech recognition not supported in this browser. Try Chrome or Edge.', 'error');
     }
   };
 
@@ -198,7 +200,9 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt, onModelsFound }) => {
 
     // Check if API key is configured (skip for local provider)
     if (selectedAI !== 'local' && !hasAPIKey(selectedAI)) {
-      alert(`⚙️ Please configure your ${selectedAI.toUpperCase()} API key first!`);
+      if (showNotification) {
+        showNotification(`⚙️ Please configure your ${selectedAI.toUpperCase()} API key first!`, 'error');
+      }
       setShowSettings(true);
       return;
     }
@@ -208,16 +212,15 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt, onModelsFound }) => {
       // Process prompt with AI
       const instructions = await processPrompt(currentPrompt);
       
-      // Pass instructions to parent component
+      // Pass instructions to parent component (parent will show notification)
       onSubmitPrompt(instructions);
-      
-      // Show success message
-      alert(`✅ ${instructions.explanation}`);
       
       setCurrentPrompt('');
     } catch (error) {
       console.error('Error processing prompt:', error);
-      alert(`❌ Error: ${error.message}`);
+      if (showNotification) {
+        showNotification(`❌ Error: ${error.message}`, 'error');
+      }
     } finally {
       setIsProcessing(false);
     }
@@ -227,7 +230,7 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt, onModelsFound }) => {
     if (apiKey.trim()) {
       setAPIKey(apiKey, selectedAI);
       setAIProvider(selectedAI);
-      alert(`✅ API key saved for ${selectedAI.toUpperCase()}!`);
+      if (showNotification) showNotification(`✅ API key saved for ${selectedAI.toUpperCase()}!`, 'success');
       setShowSettings(false);
     }
   };
@@ -270,20 +273,14 @@ const AIChat = ({ isOpen, onClose, onSubmitPrompt, onModelsFound }) => {
     setEditingPrompt(null);
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="ai-chat-overlay" onClick={onClose}>
-      <div className="ai-chat-popup" onClick={(e) => e.stopPropagation()}>
-        <div className="chat-header">
-          <h2>🤖 AI Chat & Master Prompt Library</h2>
-          <div className="header-actions">
-            <button className="settings-btn" onClick={() => setShowSettings(!showSettings)}>
-              ⚙️ API Key
-            </button>
-            <button className="close-btn" onClick={onClose}>✕</button>
-          </div>
-        </div>
+    <div className="ai-chat-panel">
+      <div className="panel-header">
+        <h3>🤖 AI ASSISTANT</h3>
+        <button className="settings-btn-small" onClick={() => setShowSettings(!showSettings)}>
+          ⚙️
+        </button>
+      </div>
 
         {/* Settings Panel */}
         {showSettings && (

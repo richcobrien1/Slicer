@@ -214,6 +214,13 @@ const Model3D = ({ modelType, fileURL, transformations }) => {
               enableZoom={true}
               enableRotate={true}
               autoRotate={false}
+              zoomSpeed={0.5}
+              panSpeed={0.5}
+              rotateSpeed={0.5}
+              minDistance={1}
+              maxDistance={20}
+              enableDamping={true}
+              dampingFactor={0.05}
             />
             <gridHelper args={[5, 20, '#888888', '#555555']} />
           </Suspense>

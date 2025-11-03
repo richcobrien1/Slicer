@@ -649,3 +649,94 @@
   display: flex;
   gap: 10px;
 }
+
+/* Accordion Panel Styles */
+.ai-chat-panel {
+  background: #2a2a2a;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  border: 1px solid #444;
+  overflow: hidden;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  background: #1f1f1f;
+  border-bottom: 1px solid #444;
+  cursor: pointer;
+  user-select: none;
+}
+
+.panel-header h3 {
+  margin: 0;
+  color: #ff9500;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.settings-btn-small {
+  background: none;
+  border: none;
+  color: #ff9500;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 5px;
+  transition: transform 0.2s;
+}
+
+.settings-btn-small:hover {
+  transform: scale(1.1);
+}
+
+.accordion-section {
+  border-bottom: 1px solid #333;
+}
+
+.accordion-header {
+  padding: 12px 15px;
+  background: #252525;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.2s;
+}
+
+.accordion-header:hover {
+  background: #2d2d2d;
+}
+
+.accordion-header h4 {
+  margin: 0;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.accordion-icon {
+  color: #ff9500;
+  transition: transform 0.3s;
+}
+
+.accordion-icon.open {
+  transform: rotate(90deg);
+}
+
+.accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+}
+
+.accordion-content.open {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.accordion-body {
+  padding: 15px;
+}
