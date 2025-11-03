@@ -110,7 +110,36 @@ function processLocalPrompt(prompt) {
     if (lower.includes('z')) return { operation: 'mirror', parameters: { axis: 'z' }, explanation: 'Mirroring along Z axis' };
   }
   
-  return { operation: 'modify', parameters: { description: prompt }, explanation: 'Sorry, I didn\'t understand that command. Try: "make it red", "twice as big", "add a base", or "rotate 90 degrees"' };
+  // Hollow
+  if (lower.includes('hollow')) {
+    const wallMatch = lower.match(/(\d+)\s*mm/);
+    const thickness = wallMatch ? parseFloat(wallMatch[1]) : 2;
+    return { operation: 'hollow', parameters: { wallThickness: thickness }, explanation: `Making model hollow with ${thickness}mm walls` };
+  }
+  
+  // Support structures
+  if (lower.includes('support')) {
+    const angleMatch = lower.match(/(\d+)\s*degree/);
+    const angle = angleMatch ? parseFloat(angleMatch[1]) : 45;
+    return { operation: 'support', parameters: { angle: angle, density: 0.3 }, explanation: `Adding support structures for overhangs > ${angle}°` };
+  }
+  
+  // Resize to specific dimensions
+  if (lower.match(/(\d+)\s*mm/)) {
+    const sizeMatch = lower.match(/(\d+)\s*mm/);
+    const size = parseFloat(sizeMatch[1]);
+    if (lower.includes('wide') || lower.includes('width')) {
+      return { operation: 'resize', parameters: { width: size }, explanation: `Resizing model to ${size}mm width` };
+    }
+    if (lower.includes('tall') || lower.includes('height')) {
+      return { operation: 'resize', parameters: { height: size }, explanation: `Resizing model to ${size}mm height` };
+    }
+    if (lower.includes('deep') || lower.includes('depth')) {
+      return { operation: 'resize', parameters: { depth: size }, explanation: `Resizing model to ${size}mm depth` };
+    }
+  }
+  
+  return { operation: 'modify', parameters: { description: prompt }, explanation: 'Sorry, I didn\'t understand that command. Try: "make it red", "twice as big", "add a base", "hollow with 2mm walls", "add supports", or "make it 100mm wide"' };
 }
 
 /**

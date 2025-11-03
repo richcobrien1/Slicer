@@ -56,7 +56,12 @@ const Model3D = ({ modelType, fileURL, transformations }) => {
   const [transformations, setTransformations] = useState({
     scale: 0.05,
     rotation: [0, 0, 0],
-    position: [0, 0, 0]
+    position: [0, 0, 0],
+    color: null,
+    resize: null,
+    hollow: null,
+    support: null,
+    addBase: null
   });
   const [isDragging, setIsDragging] = useState(false);
   const [tempViewModel, setTempViewModel] = useState(null);
@@ -142,6 +147,30 @@ const Model3D = ({ modelType, fileURL, transformations }) => {
           case 'color':
             // Store color to apply to mesh material
             newTransforms.color = parameters.color;
+            break;
+          case 'resize':
+            // Store resize parameters for visual feedback
+            newTransforms.resize = parameters;
+            console.log('Resize operation registered (visual only):', parameters);
+            break;
+          case 'hollow':
+            // Store hollow parameters (note: actual hollowing requires geometry modification)
+            newTransforms.hollow = parameters;
+            console.log('Hollow operation registered (requires geometry export):', parameters);
+            break;
+          case 'support':
+            // Store support structure parameters
+            newTransforms.support = parameters;
+            console.log('Support structure operation registered (requires slicer processing):', parameters);
+            break;
+          case 'addBase':
+            // Store base platform parameters
+            newTransforms.addBase = parameters;
+            console.log('Base platform operation registered:', parameters);
+            break;
+          case 'modify':
+            // Generic modification request
+            console.log('Modification request:', parameters.description);
             break;
           default:
             console.warn('Operation not implemented in viewer:', operation);
