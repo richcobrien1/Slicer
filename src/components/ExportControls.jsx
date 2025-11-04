@@ -16,6 +16,9 @@ const ExportControls = ({ selectedModel, onModelImport }) => {
   const [isSending, setIsSending] = useState(false);
   const [sendProgress, setSendProgress] = useState(null);
 
+  // Debug: Log when component renders
+  console.log('ExportControls rendered', { selectedModel, isSending });
+
   const handleDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -267,17 +270,28 @@ const ExportControls = ({ selectedModel, onModelImport }) => {
 
         <button 
           onClick={(e) => {
-            console.log('Button clicked!', e);
-            handleSendToPrinter();
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🔴 SEND TO PRINTER BUTTON CLICKED!', { 
+              selectedModel, 
+              isSending,
+              disabled: !selectedModel || isSending 
+            });
+            if (selectedModel && !isSending) {
+              handleSendToPrinter();
+            } else {
+              console.warn('Button is disabled:', { selectedModel, isSending });
+              alert('Please select a model first!');
+            }
           }}
           disabled={!selectedModel || isSending}
           className="export-btn print-btn"
-          style={{ pointerEvents: 'auto' }}
         >
           <span className="btn-icon">{isSending ? '⏳' : '🖨️'}</span>
           <div className="btn-content">
             <div className="btn-title">
               {isSending ? (sendProgress?.message || 'Sending...') : 'Send to Printer'}
+              {!selectedModel && ' (Select model first)'}
             </div>
             <div className="btn-subtitle">
               {isSending && sendProgress?.percent !== undefined
