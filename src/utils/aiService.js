@@ -98,9 +98,8 @@ function processLocalPrompt(prompt) {
   
   // Base platform
   if (lower.includes('base') || lower.includes('platform')) {
-    if (lower.includes('circle')) return { operation: 'addBase', parameters: { type: 'circle', thickness: 2, margin: 5 }, explanation: 'Adding circular base platform' };
-    if (lower.includes('hex')) return { operation: 'addBase', parameters: { type: 'hexagon', thickness: 2, margin: 5 }, explanation: 'Adding hexagonal base platform' };
-    return { operation: 'addBase', parameters: { type: 'rectangle', thickness: 2, margin: 5 }, explanation: 'Adding rectangular base platform' };
+    if (lower.includes('circle') || lower.includes('round')) return { operation: 'addBase', parameters: { type: 'circular', height: 0.002, margin: 0.005 }, explanation: 'Adding circular base platform' };
+    return { operation: 'addBase', parameters: { type: 'rectangular', height: 0.002, margin: 0.005 }, explanation: 'Adding rectangular base platform' };
   }
   
   // Mirror
@@ -113,15 +112,24 @@ function processLocalPrompt(prompt) {
   // Hollow
   if (lower.includes('hollow')) {
     const wallMatch = lower.match(/(\d+)\s*mm/);
-    const thickness = wallMatch ? parseFloat(wallMatch[1]) : 2;
-    return { operation: 'hollow', parameters: { wallThickness: thickness }, explanation: `Making model hollow with ${thickness}mm walls` };
+    const thickness = wallMatch ? parseFloat(wallMatch[1]) / 1000 : 0.002; // Convert mm to meters
+    return { operation: 'hollow', parameters: { wallThickness: thickness }, explanation: `Making model hollow with ${wallMatch ? wallMatch[1] : 2}mm walls` };
+  }
+  
+  // Drainage holes
+  if (lower.includes('hole') || lower.includes('drain')) {
+    const countMatch = lower.match(/(\d+)\s*hole/);
+    const diameterMatch = lower.match(/(\d+)\s*mm/);
+    const count = countMatch ? parseInt(countMatch[1]) : 2;
+    const diameter = diameterMatch ? parseFloat(diameterMatch[1]) / 1000 : 0.002; // Convert mm to meters
+    return { operation: 'addHoles', parameters: { diameter, count }, explanation: `Adding ${count} drainage holes (${diameterMatch ? diameterMatch[1] : 2}mm diameter)` };
   }
   
   // Support structures
   if (lower.includes('support')) {
     const angleMatch = lower.match(/(\d+)\s*degree/);
     const angle = angleMatch ? parseFloat(angleMatch[1]) : 45;
-    return { operation: 'support', parameters: { angle: angle, density: 0.3 }, explanation: `Adding support structures for overhangs > ${angle}°` };
+    return { operation: 'support', parameters: { angle, density: 0.01, thickness: 0.001 }, explanation: `Adding support structures for overhangs > ${angle}°` };
   }
   
   // Resize to specific dimensions

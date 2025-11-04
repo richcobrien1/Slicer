@@ -1,5 +1,12 @@
 // Mesh transformation utilities for STL models
 import * as THREE from 'three';
+import {
+  createHollow,
+  addBase,
+  addSupports as addGeometrySupports,
+  addDrainageHoles,
+  applyGeometryOperation
+} from './geometryOps';
 
 /**
  * Apply AI transformation instructions to a mesh
@@ -33,6 +40,8 @@ export function applyTransformation(mesh, instructions) {
       return resizeMesh(mesh, parameters);
     case 'addBase':
       return addBasePlatform(mesh, parameters);
+    case 'addHoles':
+      return addDrainageHolesMesh(mesh, parameters);
     default:
       throw new Error(`Operation not implemented: ${operation}`);
   }
@@ -57,19 +66,12 @@ function scaleMesh(mesh, { factor }) {
 /**
  * Create hollow mesh with wall thickness
  */
-function hollowMesh(mesh, { wallThickness }) {
-  // This is a simplified version - full implementation would require CSG operations
+function hollowMesh(mesh, { wallThickness = 0.002 }) {
   const newMesh = mesh.clone();
-  const scaleFactor = 1 - (wallThickness * 2 / getBoundingSize(mesh));
+  const hollowedGeometry = createHollow(mesh.geometry.clone(), wallThickness);
+  newMesh.geometry = hollowedGeometry;
   
-  // Create inner mesh (scaled down)
-  const innerGeometry = mesh.geometry.clone();
-  innerGeometry.scale(scaleFactor, scaleFactor, scaleFactor);
-  
-  // In production, you'd use CSG to subtract inner from outer
-  // For now, we'll just return the outer mesh with modified material
-  newMesh.geometry = mesh.geometry.clone();
-  
+  console.log(`Created hollow mesh with ${wallThickness}mm wall thickness`);
   return newMesh;
 }
 
@@ -124,17 +126,18 @@ function moveMesh(mesh, { x = 0, y = 0, z = 0 }) {
 }
 
 /**
- * Add support structures (simplified)
+ * Add support structures
  */
-function addSupports(mesh, { angle = 45, density = 0.5 }) {
-  // This is a placeholder - full support generation is complex
-  // Would need to analyze geometry, find overhangs, generate pillars
+function addSupports(mesh, { angle = 45, density = 0.01, thickness = 0.001 }) {
   const newMesh = mesh.clone();
+  const supportedGeometry = addGeometrySupports(mesh.geometry.clone(), {
+    overhangAngle: angle,
+    supportDensity: density,
+    supportThickness: thickness
+  });
+  newMesh.geometry = supportedGeometry;
   
-  // For now, just return the mesh
-  // In production, you'd add support geometry here
-  console.log(`Would add supports at ${angle}° angle with ${density} density`);
-  
+  console.log(`Added support structures at ${angle}° overhang angle`);
   return newMesh;
 }
 
@@ -195,49 +198,32 @@ function resizeMesh(mesh, { width, height, depth }) {
 /**
  * Add base platform to model
  */
-function addBasePlatform(mesh, { type = 'rectangle', thickness = 2, margin = 5 }) {
-  const box = new THREE.Box3().setFromObject(mesh);
-  const size = new THREE.Vector3();
-  box.getSize(size);
-  const center = new THREE.Vector3();
-  box.getCenter(center);
+function addBasePlatform(mesh, { type = 'rectangular', height = 0.002, margin = 0.005 }) {
+  const newMesh = mesh.clone();
+  const basedGeometry = addBase(mesh.geometry.clone(), {
+    type: type === 'circle' || type === 'round' || type === 'circular' ? 'circular' : 'rectangular',
+    height,
+    margin
+  });
+  newMesh.geometry = basedGeometry;
   
-  let baseGeometry;
+  console.log(`Added ${type} base platform with ${margin}m margin`);
+  return newMesh;
+}
+
+/**
+ * Add drainage holes to model
+ */
+function addDrainageHolesMesh(mesh, { diameter = 0.002, count = 2 }) {
+  const newMesh = mesh.clone();
+  const holedGeometry = addDrainageHoles(mesh.geometry.clone(), {
+    holeDiameter: diameter,
+    holeCount: count
+  });
+  newMesh.geometry = holedGeometry;
   
-  if (type === 'rectangle' || type === 'square') {
-    // Create rectangular base
-    const baseWidth = size.x + margin * 2;
-    const baseDepth = size.z + margin * 2;
-    baseGeometry = new THREE.BoxGeometry(baseWidth, thickness, baseDepth);
-  } else if (type === 'circle' || type === 'round') {
-    // Create circular base
-    const radius = Math.max(size.x, size.z) / 2 + margin;
-    baseGeometry = new THREE.CylinderGeometry(radius, radius, thickness, 32);
-  } else if (type === 'hexagon') {
-    // Create hexagonal base
-    const radius = Math.max(size.x, size.z) / 2 + margin;
-    baseGeometry = new THREE.CylinderGeometry(radius, radius, thickness, 6);
-  }
-  
-  // Create base mesh
-  const baseMaterial = mesh.material ? mesh.material.clone() : new THREE.MeshPhongMaterial({ color: 0x808080 });
-  const baseMesh = new THREE.Mesh(baseGeometry, baseMaterial);
-  
-  // Position base at bottom of model
-  baseMesh.position.set(center.x, box.min.y - thickness / 2, center.z);
-  
-  // Create group containing both model and base
-  const group = new THREE.Group();
-  const modelClone = mesh.clone();
-  group.add(modelClone);
-  group.add(baseMesh);
-  
-  // Return the group as a mesh-like object
-  group.isMesh = true;
-  group.geometry = modelClone.geometry;
-  group.material = modelClone.material;
-  
-  return group;
+  console.log(`Added ${count} drainage holes (${diameter}m diameter)`);
+  return newMesh;
 }
 
 /**
