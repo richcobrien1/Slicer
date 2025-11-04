@@ -27,6 +27,10 @@ function createWindow() {
   // Show window when ready to avoid flashing
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
+    // Open dev tools to debug crashes
+    if (process.env.NODE_ENV === 'development') {
+      mainWindow.webContents.openDevTools();
+    }
   });
 
   // Load the app
