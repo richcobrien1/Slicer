@@ -363,6 +363,7 @@ const ExportControls = ({ selectedModel, onModelImport }) => {
 
       {showPrinterDialog && (
         <PrinterDialog 
+          isOpen={showPrinterDialog}
           onClose={() => setShowPrinterDialog(false)}
           onSelectPrinter={handlePrinterSelect}
         />
