@@ -35,8 +35,9 @@ export const SlicerType = {
 export const DEFAULT_SLICER_PATHS = {
   win32: {
     prusaslicer: 'C:\\Program Files\\Prusa3D\\PrusaSlicer\\prusa-slicer.exe',
-    cura: 'C:\\Program Files\\Ultimaker Cura\\Cura.exe',
-    cura_alt: 'C:\\Program Files\\Cura\\Cura.exe', // Alternative Cura path
+    cura: 'C:\\Program Files\\UltiMaker Cura 5.11.0\\Cura.exe',
+    cura_alt: 'C:\\Program Files\\Ultimaker Cura\\Cura.exe', // Older Cura path
+    cura_alt2: 'C:\\Program Files\\Cura\\Cura.exe', // Alternative Cura path
     orcaslicer: 'C:\\Program Files\\OrcaSlicer\\OrcaSlicer.exe',
     superslicer: 'C:\\Program Files\\SuperSlicer\\superslicer.exe',
     simplify3d: 'C:\\Program Files\\Simplify3D\\Simplify3D.exe',
