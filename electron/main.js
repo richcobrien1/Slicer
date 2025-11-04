@@ -197,21 +197,51 @@ ipcMain.handle('slicer:launch', async (event, options) => {
     const { spawn } = require('child_process');
     const os = require('os');
     
+    // Validate slicer path exists
+    if (!fs.existsSync(slicerPath)) {
+      return {
+        success: false,
+        error: `Slicer not found at: ${slicerPath}\n\nPlease update the slicer path in printer settings.`
+      };
+    }
+    
     // Save STL to temp directory
     const tempDir = os.tmpdir();
     const tempFilePath = path.join(tempDir, filename);
+    
+    console.log('Saving STL to:', tempFilePath);
     
     // Write file
     const buffer = Buffer.from(data);
     fs.writeFileSync(tempFilePath, buffer);
     
-    // Replace {file} placeholder with actual path
-    const args = slicerArgs.replace('{file}', `"${tempFilePath}"`).split(' ');
+    console.log('Launching slicer:', slicerPath);
+    console.log('With args:', slicerArgs);
+    
+    // Build arguments array
+    let args = [];
+    if (slicerArgs && slicerArgs.trim()) {
+      // Replace {file} placeholder with actual path
+      const argString = slicerArgs.replace('{file}', tempFilePath);
+      // Split args properly, respecting quotes
+      args = argString.match(/(?:[^\s"]+|"[^"]*")+/g) || [];
+      args = args.map(arg => arg.replace(/^"(.*)"$/, '$1')); // Remove surrounding quotes
+    } else {
+      // No args specified, just pass the file
+      args = [tempFilePath];
+    }
+    
+    console.log('Final args:', args);
     
     // Launch slicer
     const slicerProcess = spawn(slicerPath, args, {
       detached: true,
-      stdio: 'ignore'
+      stdio: 'ignore',
+      shell: false // Don't use shell to avoid path issues
+    });
+    
+    slicerProcess.on('error', (err) => {
+      console.error('Slicer launch error:', err);
     });
     
     slicerProcess.unref(); // Allow parent to exit independently
@@ -222,6 +252,7 @@ ipcMain.handle('slicer:launch', async (event, options) => {
       tempPath: tempFilePath
     };
   } catch (error) {
+    console.error('Slicer launch exception:', error);
     return {
       success: false,
       error: error.message
