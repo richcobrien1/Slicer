@@ -16,12 +16,21 @@ export const exportToSTL = (mesh, filename = 'model.stl') => {
 export const createMeshFromType = async (modelType) => {
   // Load the STL file for the given model type
   const loader = new STLLoader();
-  const url = `/models/${modelType.toLowerCase()}.stl`;
+  
+  // In Electron, use relative path from index.html location
+  // In dev/web, use absolute path
+  const isElectron = window.navigator.userAgent.toLowerCase().includes('electron');
+  const url = isElectron 
+    ? `./models/${modelType.toLowerCase()}.stl`  // Relative for Electron
+    : `/models/${modelType.toLowerCase()}.stl`;  // Absolute for web
+  
+  console.log('Loading model from:', url, 'isElectron:', isElectron);
   
   return new Promise((resolve, reject) => {
     loader.load(
       url,
       (geometry) => {
+        console.log('Model loaded successfully:', modelType);
         const material = new THREE.MeshStandardMaterial({ 
           color: 0xFFD700, 
           metalness: 0.9, 
@@ -32,6 +41,7 @@ export const createMeshFromType = async (modelType) => {
       },
       undefined,
       (error) => {
+        console.error('Model loading error:', error);
         reject(error);
       }
     );
