@@ -87,6 +87,8 @@ const ExportControls = ({ selectedModel, onModelImport }) => {
   };
 
   const handleSendToPrinter = async () => {
+    console.log('Send to Printer clicked!', { selectedModel });
+    
     if (!selectedModel) {
       alert('Please select a model first');
       return;
@@ -94,14 +96,17 @@ const ExportControls = ({ selectedModel, onModelImport }) => {
 
     // Check if default printer is configured
     const defaultPrinter = getDefaultPrinter();
+    console.log('Default printer:', defaultPrinter);
     
     // If no default printer, open printer dialog
     if (!defaultPrinter) {
+      console.log('No default printer, opening dialog');
       setShowPrinterDialog(true);
       return;
     }
 
     // Send to default printer
+    console.log('Sending to default printer');
     await sendToPrinterWithProfile(defaultPrinter);
   };
 
@@ -261,9 +266,13 @@ const ExportControls = ({ selectedModel, onModelImport }) => {
         </button>
 
         <button 
-          onClick={handleSendToPrinter}
+          onClick={(e) => {
+            console.log('Button clicked!', e);
+            handleSendToPrinter();
+          }}
           disabled={!selectedModel || isSending}
           className="export-btn print-btn"
+          style={{ pointerEvents: 'auto' }}
         >
           <span className="btn-icon">{isSending ? '⏳' : '🖨️'}</span>
           <div className="btn-content">
