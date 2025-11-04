@@ -25,6 +25,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Updates
   checkForUpdates: () => ipcRenderer.invoke('app:checkForUpdates'),
   
+  // Slicer integration
+  launchSlicer: (options) => ipcRenderer.invoke('slicer:launch', options),
+  
+  // USB printer
+  sendToUSBPrinter: (options) => ipcRenderer.invoke('printer:sendUSB', options),
+  
   // Platform detection
   platform: process.platform,
   isElectron: true

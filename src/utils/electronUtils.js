@@ -219,6 +219,47 @@ export async function saveFile(data, defaultName = 'model.stl') {
   }
 }
 
+/**
+ * Send STL to slicer software
+ */
+export async function sendToSlicer(stlBlob, filename, printerProfile) {
+  if (!isElectron()) {
+    throw new Error('Slicer launching requires desktop app');
+  }
+  
+  if (!window.electronAPI.launchSlicer) {
+    throw new Error('Slicer launching not available in this version');
+  }
+  
+  try {
+    // Convert blob to array buffer
+    const arrayBuffer = await stlBlob.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
+    
+    const result = await window.electronAPI.launchSlicer({
+      data: Array.from(uint8Array),
+      filename,
+      slicerPath: printerProfile.slicerPath,
+      slicerArgs: printerProfile.slicerArgs || '--load {file}'
+    });
+    
+    return result;
+  } catch (error) {
+    console.error('Error launching slicer:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
+/**
+ * Get Electron API (for direct access)
+ */
+export function getElectronAPI() {
+  return isElectron() ? window.electronAPI : null;
+}
+
 // Log environment info
 if (isElectron()) {
   console.log('🖥️ Running in Electron Desktop App');

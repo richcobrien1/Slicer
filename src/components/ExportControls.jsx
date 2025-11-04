@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { exportToSTL, createMeshFromType } from '../utils/stlExport';
 import { isElectron, saveFile } from '../utils/electronUtils';
+import { sendToPrinter } from '../utils/printerIntegration';
+import { getDefaultPrinter } from '../utils/printerProfiles';
+import PrinterDialog from './PrinterDialog';
 import './ExportControls.css';
 
 const ExportControls = ({ selectedModel, onModelImport }) => {
@@ -9,6 +12,9 @@ const ExportControls = ({ selectedModel, onModelImport }) => {
     return localStorage.getItem('preferredSlicer') || null;
   });
   const [showSlicerSetup, setShowSlicerSetup] = useState(false);
+  const [showPrinterDialog, setShowPrinterDialog] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [sendProgress, setSendProgress] = useState(null);
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -86,7 +92,26 @@ const ExportControls = ({ selectedModel, onModelImport }) => {
       return;
     }
 
+    // Check if default printer is configured
+    const defaultPrinter = getDefaultPrinter();
+    
+    // If no default printer, open printer dialog
+    if (!defaultPrinter) {
+      setShowPrinterDialog(true);
+      return;
+    }
+
+    // Send to default printer
+    await sendToPrinterWithProfile(defaultPrinter);
+  };
+
+  const sendToPrinterWithProfile = async (printerProfile) => {
+    if (!selectedModel) return;
+
     try {
+      setIsSending(true);
+      setSendProgress({ message: 'Generating STL...', percent: 0 });
+
       // Generate the STL file
       const mesh = await createMeshFromType(selectedModel.name);
       const exporter = new (await import('three/examples/jsm/exporters/STLExporter')).STLExporter();
@@ -95,35 +120,49 @@ const ExportControls = ({ selectedModel, onModelImport }) => {
       const filename = `${selectedModel.name.toLowerCase()}_print.stl`;
       const blob = new Blob([result], { type: 'application/sla' });
 
-      // Detect common slicer installation paths
-      const slicerPaths = detectSlicerPaths();
+      setSendProgress({ message: 'Sending to printer...', percent: 50 });
+
+      // Send to printer
+      await sendToPrinter(blob, filename, printerProfile, (progress) => {
+        setSendProgress(progress);
+      });
+
+      setSendProgress({ message: 'Success!', percent: 100 });
       
-      // Use native save dialog with suggested locations
-      const savedPath = await saveFile(blob, filename);
+      // Show success message
+      let successMessage = `✅ File sent successfully to ${printerProfile.name}!`;
       
-      if (savedPath) {
-        // Offer to open in slicer
-        const slicerOptions = slicerPaths.length > 0 
-          ? `\n\n🎯 Detected Slicers:\n${slicerPaths.map(s => `• ${s.name}`).join('\n')}\n\nWould you like to open in your slicer now?`
-          : '';
-        
-        const message = `🖨️ File ready for printing!\n\n✅ Saved: ${typeof savedPath === 'string' ? savedPath : filename}\n\nNext steps:\n1. Open in your slicer software${slicerOptions}\n2. Configure print settings (temperature, speed, infill)\n3. Slice to G-code\n4. Send to your 3D printer\n\nTip: Save to your printer's watch folder for automatic detection!`;
-        
-        alert(message);
-        
-        // If we detected slicers, offer to open the file
-        if (slicerPaths.length > 0 && savedPath && typeof savedPath === 'string') {
-          if (confirm(`Open ${filename} in ${slicerPaths[0].name}?`)) {
-            await openInSlicer(savedPath, slicerPaths[0]);
-          }
-        }
+      if (printerProfile.connectionType === 'slicer') {
+        successMessage += '\n\n🎯 Slicer should open automatically.\nConfigure your print settings and slice to G-code.';
+      } else if (printerProfile.connectionType === 'octoprint' || 
+                 printerProfile.connectionType === 'klipper' || 
+                 printerProfile.connectionType === 'prusalink') {
+        successMessage += '\n\n🖨️ File uploaded to printer.\nSelect it in your printer interface to start printing.';
       }
+      
+      alert(successMessage);
+      
+      // Clear progress after short delay
+      setTimeout(() => {
+        setSendProgress(null);
+        setIsSending(false);
+      }, 1500);
       
     } catch (error) {
       console.error('Send to printer error:', error);
+      setSendProgress(null);
+      setIsSending(false);
+      
       if (error.name !== 'AbortError') {
-        alert('❌ Error preparing file for printer. Please try again.');
+        alert(`❌ Error: ${error.message || 'Failed to send to printer. Please check your printer settings and try again.'}`);
       }
+    }
+  };
+
+  const handlePrinterSelect = async (printer) => {
+    setShowPrinterDialog(false);
+    if (printer) {
+      await sendToPrinterWithProfile(printer);
     }
   };
 
@@ -223,13 +262,19 @@ const ExportControls = ({ selectedModel, onModelImport }) => {
 
         <button 
           onClick={handleSendToPrinter}
-          disabled={!selectedModel}
+          disabled={!selectedModel || isSending}
           className="export-btn print-btn"
         >
-          <span className="btn-icon">🖨️</span>
+          <span className="btn-icon">{isSending ? '⏳' : '🖨️'}</span>
           <div className="btn-content">
-            <div className="btn-title">Send to Printer</div>
-            <div className="btn-subtitle">Direct print via USB/Network</div>
+            <div className="btn-title">
+              {isSending ? (sendProgress?.message || 'Sending...') : 'Send to Printer'}
+            </div>
+            <div className="btn-subtitle">
+              {isSending && sendProgress?.percent !== undefined
+                ? `${sendProgress.percent}%`
+                : 'Direct print via slicer or network'}
+            </div>
           </div>
         </button>
       </div>
@@ -291,6 +336,13 @@ const ExportControls = ({ selectedModel, onModelImport }) => {
             </button>
           </div>
         </div>
+      )}
+
+      {showPrinterDialog && (
+        <PrinterDialog 
+          onClose={() => setShowPrinterDialog(false)}
+          onSelectPrinter={handlePrinterSelect}
+        />
       )}
     </div>
   );

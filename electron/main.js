@@ -189,6 +189,65 @@ ipcMain.handle('app:checkForUpdates', async () => {
   return { hasUpdate: false };
 });
 
+// Launch slicer with STL file
+ipcMain.handle('slicer:launch', async (event, options) => {
+  const { data, filename, slicerPath, slicerArgs } = options;
+  
+  try {
+    const { spawn } = require('child_process');
+    const os = require('os');
+    
+    // Save STL to temp directory
+    const tempDir = os.tmpdir();
+    const tempFilePath = path.join(tempDir, filename);
+    
+    // Write file
+    const buffer = Buffer.from(data);
+    fs.writeFileSync(tempFilePath, buffer);
+    
+    // Replace {file} placeholder with actual path
+    const args = slicerArgs.replace('{file}', `"${tempFilePath}"`).split(' ');
+    
+    // Launch slicer
+    const slicerProcess = spawn(slicerPath, args, {
+      detached: true,
+      stdio: 'ignore'
+    });
+    
+    slicerProcess.unref(); // Allow parent to exit independently
+    
+    return {
+      success: true,
+      message: `Launched slicer with ${filename}`,
+      tempPath: tempFilePath
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+});
+
+// Send to USB printer
+ipcMain.handle('printer:sendUSB', async (event, options) => {
+  const { data, filename, port, baudRate } = options;
+  
+  try {
+    // This would require serial port library
+    // For now, return not implemented
+    return {
+      success: false,
+      error: 'USB printing not yet implemented. Please use slicer or network printer.'
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+});
+
 console.log('Electron main process started');
 console.log('App version:', app.getVersion());
 console.log('Electron version:', process.versions.electron);
