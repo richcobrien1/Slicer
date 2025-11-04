@@ -120,8 +120,20 @@ const ExportControls = ({ selectedModel, onModelImport }) => {
       setIsSending(true);
       setSendProgress({ message: 'Generating STL...', percent: 0 });
 
+      // Validate printer profile
+      if (!printerProfile || !printerProfile.name) {
+        throw new Error('Invalid printer profile');
+      }
+
       // Generate the STL file
+      console.log('Creating mesh for:', selectedModel.name);
       const mesh = await createMeshFromType(selectedModel.name);
+      
+      if (!mesh) {
+        throw new Error('Failed to create mesh from model');
+      }
+
+      console.log('Exporting to STL...');
       const exporter = new (await import('three/examples/jsm/exporters/STLExporter')).STLExporter();
       const result = exporter.parse(mesh, { binary: true });
       
@@ -131,7 +143,9 @@ const ExportControls = ({ selectedModel, onModelImport }) => {
       setSendProgress({ message: 'Sending to printer...', percent: 50 });
 
       // Send to printer
+      console.log('Sending to printer:', printerProfile.name);
       await sendToPrinter(blob, filename, printerProfile, (progress) => {
+        console.log('Upload progress:', progress);
         setSendProgress(progress);
       });
 
@@ -157,12 +171,15 @@ const ExportControls = ({ selectedModel, onModelImport }) => {
       }, 1500);
       
     } catch (error) {
-      console.error('Send to printer error:', error);
+      console.error('❌ Send to printer error:', error);
+      console.error('Error stack:', error.stack);
       setSendProgress(null);
       setIsSending(false);
       
       if (error.name !== 'AbortError') {
-        alert(`❌ Error: ${error.message || 'Failed to send to printer. Please check your printer settings and try again.'}`);
+        const errorMessage = error.message || 'Failed to send to printer. Please check your printer settings and try again.';
+        console.error('Showing error to user:', errorMessage);
+        alert(`❌ Error: ${errorMessage}`);
       }
     }
   };
