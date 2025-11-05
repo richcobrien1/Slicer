@@ -266,12 +266,11 @@ const ExportControls = ({ selectedModel, onModelImport }) => {
       {isDragging && (
         <div className="drag-overlay">
           <div className="drag-message">
-            <p>�️</p>
+            <p>📁️</p>
             <p>Drop to print directly</p>
           </div>
         </div>
       )}
-      <h2>📤 Export Options</h2>
       <div className="export-buttons">
         <button 
           onClick={handleExport}

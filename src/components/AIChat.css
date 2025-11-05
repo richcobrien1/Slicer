@@ -88,21 +88,20 @@
 
 /* Settings Panel */
 .settings-panel {
-  background: #1f1f1f;
-  border-bottom: 1px solid #444;
-  padding: 20px 25px;
+  padding: 15px;
 }
 
 .settings-panel h3 {
   margin: 0 0 10px 0;
   color: #ff9800;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .settings-info {
   color: #b0b0b0;
-  font-size: 13px;
-  margin-bottom: 15px;
+  font-size: 11px;
+  margin-bottom: 10px;
+  line-height: 1.4;
 }
 
 .settings-info a {
@@ -116,18 +115,20 @@
 
 .api-key-input-group {
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .api-key-input {
-  flex: 1;
-  padding: 10px 15px;
+  width: 100%;
+  padding: 8px 12px;
   background: #2a2a2a;
   border: 2px solid #444;
-  border-radius: 6px;
+  border-radius: 4px;
   color: #e0e0e0;
-  font-size: 13px;
+  font-size: 11px;
   font-family: 'Consolas', 'Monaco', monospace;
+  box-sizing: border-box;
 }
 
 .api-key-input:focus {
@@ -150,29 +151,32 @@
 .ai-provider-selector label {
   display: block;
   color: #e0e0e0;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .provider-options {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
 }
 
 .provider-btn {
-  padding: 12px 16px;
+  padding: 10px 12px;
   background: #2a2a2a;
   border: 2px solid #444;
-  border-radius: 6px;
+  border-radius: 4px;
   color: #e0e0e0;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .provider-btn:hover {
@@ -188,7 +192,14 @@
 
 .api-key-section {
   border-top: 1px solid #444;
-  padding-top: 20px;
+  padding-top: 15px;
+  margin-top: 15px;
+}
+
+.api-key-section h4 {
+  margin: 0 0 10px 0;
+  color: #e0e0e0;
+  font-size: 13px;
 }
 
 /* Model Search API Keys */
@@ -333,20 +344,22 @@
 
 .action-btn {
   flex: 1;
-  padding: 12px 20px;
+  padding: 10px 16px;
   border: none;
-  border-radius: 6px;
-  font-size: 13px;
+  border-radius: 4px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 
 .action-btn.primary {
   background: #ff9800;
   color: #fff;
+  width: 100%;
 }
 
 .action-btn.primary:hover {
@@ -493,12 +506,11 @@
   border: 1px solid #444;
   border-radius: 6px;
   padding: 12px;
-  transition: all 0.2s;
+  transition: border-color 0.2s;
 }
 
 .prompt-item:hover {
   border-color: #ff9800;
-  transform: translateX(2px);
 }
 
 .prompt-header {
@@ -660,45 +672,14 @@
 
 /* Accordion Panel Styles */
 .ai-chat-panel {
-  background: #2a2a2a;
-  border-radius: 8px;
-  margin-bottom: 15px;
-  border: 1px solid #444;
-  overflow: hidden;
-}
-
-.panel-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 15px;
-  background: #1f1f1f;
-  border-bottom: 1px solid #444;
-  cursor: pointer;
-  user-select: none;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
 }
 
-.panel-header h3 {
-  margin: 0;
-  color: #ff9500;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 1px;
-}
 
-.settings-btn-small {
-  background: none;
-  border: none;
-  color: #ff9500;
-  font-size: 16px;
-  cursor: pointer;
-  padding: 5px;
-  transition: transform 0.2s;
-}
-
-.settings-btn-small:hover {
-  transform: scale(1.1);
-}
 
 .accordion-section {
   border-bottom: 1px solid #333;

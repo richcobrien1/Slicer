@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader';
@@ -157,7 +157,7 @@ const ViewportThumbnail = ({ modelName, emoji, index, fileURL }) => {
   );
 };
 
-const ModelGallery = ({ onSelectModel }) => {
+const ModelGallery = forwardRef(({ onSelectModel }, ref) => {
   // Default models
   const defaultModels = [
     { id: 1, name: 'Container_60x40', thumbnail: '📦', description: 'Knurled Container Body 60x40mm' },
@@ -182,6 +182,20 @@ const ModelGallery = ({ onSelectModel }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Expose methods to parent component
+  useImperativeHandle(ref, () => ({
+    addImportedModel: (model) => {
+      setModels(prev => [...prev, model]);
+    },
+    replaceModels: (newModels) => {
+      setModels(newModels);
+      setSelectedId(null); // Clear selection when replacing models
+    },
+    loadModels: () => {
+      loadModels();
+    }
+  }));
 
   // Load models on mount
   useEffect(() => {
@@ -356,6 +370,8 @@ const ModelGallery = ({ onSelectModel }) => {
       </div>
     </div>
   );
-};
+});
+
+ModelGallery.displayName = 'ModelGallery';
 
 export default ModelGallery;

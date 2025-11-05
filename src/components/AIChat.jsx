@@ -34,6 +34,7 @@ const AIChat = ({ onSubmitPrompt, onModelsFound, showNotification }) => {
   const [searchAPIKeys, setSearchAPIKeys] = useState({});
   const [isSearching, setIsSearching] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
+    config: false,
     prompt: true,
     library: false
   });
@@ -114,6 +115,11 @@ const AIChat = ({ onSubmitPrompt, onModelsFound, showNotification }) => {
       'need a', 'want a', 'show me', 'fetch', 'grab', 'pull'
     ];
 
+    // Keywords that indicate replacing/loading models (not adding)
+    const replaceKeywords = [
+      'load', 'replace', 'show only', 'clear and', 'reset and'
+    ];
+
     // Keywords that indicate model modification intent
     const modifyKeywords = [
       'make it', 'change', 'modify', 'scale', 'resize', 'color', 'paint',
@@ -123,6 +129,7 @@ const AIChat = ({ onSubmitPrompt, onModelsFound, showNotification }) => {
 
     const lowerText = text.toLowerCase();
     const isSearchIntent = searchKeywords.some(keyword => lowerText.includes(keyword));
+    const isReplaceIntent = replaceKeywords.some(keyword => lowerText.includes(keyword));
     const isModifyIntent = modifyKeywords.some(keyword => lowerText.includes(keyword));
 
     if (isModifyIntent && !isSearchIntent) {
@@ -131,24 +138,24 @@ const AIChat = ({ onSubmitPrompt, onModelsFound, showNotification }) => {
       return;
     }
 
-    if (isSearchIntent) {
+    if (isSearchIntent || isReplaceIntent) {
       // Extract search query - remove common command words
       let searchQuery = text
         .toLowerCase()
-        .replace(/find me|search for|look for|get me|show me|i need a|i want a|download|import|fetch|grab|pull/gi, '')
+        .replace(/find me|search for|look for|get me|show me|i need a|i want a|download|import|fetch|grab|pull|load|replace with|show only/gi, '')
         .replace(/model|models|3d model|3d models/gi, '')
         .trim();
 
       if (searchQuery) {
-        await handleModelSearch(searchQuery);
+        await handleModelSearch(searchQuery, isReplaceIntent);
       }
     }
   };
 
-  const handleModelSearch = async (query) => {
+  const handleModelSearch = async (query, replaceExisting = false) => {
     setIsSearching(true);
     try {
-      console.log(`🔍 Voice search initiated: "${query}"`);
+      console.log(`🔍 ${replaceExisting ? 'Replace' : 'Add'} search initiated: "${query}"`);
       
       // Search across all platforms
       const results = await searchModels(query, {
@@ -173,10 +180,11 @@ const AIChat = ({ onSubmitPrompt, onModelsFound, showNotification }) => {
         }
       }
 
-      // Notify parent component to add models to gallery
+      // Notify parent component to add/replace models in gallery
       if (onModelsFound && modelsToImport.length > 0) {
-        onModelsFound(modelsToImport);
-        if (showNotification) showNotification(`✅ Found ${modelsToImport.length} models for "${query}"! Check the model gallery.`, 'success');
+        onModelsFound(modelsToImport, replaceExisting);
+        const action = replaceExisting ? 'Loaded' : 'Added';
+        if (showNotification) showNotification(`✅ ${action} ${modelsToImport.length} models for "${query}"! Check the model gallery.`, 'success');
       }
     } catch (error) {
       console.error('Model search error:', error);
@@ -286,16 +294,14 @@ const AIChat = ({ onSubmitPrompt, onModelsFound, showNotification }) => {
 
   return (
     <div className="ai-chat-panel">
-      <div className="panel-header">
-        <h3>🤖 AI ASSISTANT</h3>
-        <button className="settings-btn-small" onClick={() => setShowSettings(!showSettings)}>
-          ⚙️
-        </button>
-      </div>
-
-        {/* Settings Panel */}
-        {showSettings && (
-          <div className="settings-panel">
+        {/* AI Configuration Accordion Section */}
+        <div className="accordion-section">
+          <div className="accordion-header" onClick={() => toggleSection('config')}>
+            <h4>⚙️ AI CONFIGURATION</h4>
+            <span className={`accordion-icon ${expandedSections.config ? 'open' : ''}`}>▶</span>
+          </div>
+          <div className={`accordion-content ${expandedSections.config ? 'open' : ''}`}>
+            <div className="accordion-body settings-panel">
             <h3>⚙️ AI Provider Configuration</h3>
             
             {/* AI Provider Selection */}
@@ -413,8 +419,9 @@ const AIChat = ({ onSubmitPrompt, onModelsFound, showNotification }) => {
                 💡 Say "find me a [model type]" to search across all platforms!
               </p>
             </div>
+            </div>
           </div>
-        )}
+        </div>
 
         {/* Accordion Sections */}
         <div className="accordion-sections">
@@ -555,40 +562,40 @@ const AIChat = ({ onSubmitPrompt, onModelsFound, showNotification }) => {
           </div>
         </div>
 
-        {/* Edit Modal */}
-        {isEditing && (
-          <div className="edit-modal-overlay" onClick={() => setIsEditing(false)}>
-            <div className="edit-modal" onClick={(e) => e.stopPropagation()}>
-              <h3>Edit Prompt</h3>
-              <input
-                type="text"
-                value={editingPrompt.name}
-                onChange={(e) => setEditingPrompt({...editingPrompt, name: e.target.value})}
-                placeholder="Prompt Name"
-                className="edit-input"
-              />
-              <textarea
-                value={editingPrompt.prompt}
-                onChange={(e) => setEditingPrompt({...editingPrompt, prompt: e.target.value})}
-                placeholder="Prompt Text"
-                className="edit-textarea"
-              />
-              <select
-                value={editingPrompt.category}
-                onChange={(e) => setEditingPrompt({...editingPrompt, category: e.target.value})}
-                className="edit-select"
-              >
-                {categories.filter(c => c !== 'All').map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
-              <div className="edit-actions">
-                <button className="action-btn primary" onClick={saveEdit}>Save</button>
-                <button className="action-btn secondary" onClick={() => setIsEditing(false)}>Cancel</button>
-              </div>
+      {/* Edit Modal */}
+      {isEditing && (
+        <div className="edit-modal-overlay" onClick={() => setIsEditing(false)}>
+          <div className="edit-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Edit Prompt</h3>
+            <input
+              type="text"
+              value={editingPrompt.name}
+              onChange={(e) => setEditingPrompt({...editingPrompt, name: e.target.value})}
+              placeholder="Prompt Name"
+              className="edit-input"
+            />
+            <textarea
+              value={editingPrompt.prompt}
+              onChange={(e) => setEditingPrompt({...editingPrompt, prompt: e.target.value})}
+              placeholder="Prompt Text"
+              className="edit-textarea"
+            />
+            <select
+              value={editingPrompt.category}
+              onChange={(e) => setEditingPrompt({...editingPrompt, category: e.target.value})}
+              className="edit-select"
+            >
+              {categories.filter(c => c !== 'All').map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+            <div className="edit-actions">
+              <button className="action-btn primary" onClick={saveEdit}>Save</button>
+              <button className="action-btn secondary" onClick={() => setIsEditing(false)}>Cancel</button>
             </div>
           </div>
-        )}
+        </div>
+      )}
     </div>
   );
 };

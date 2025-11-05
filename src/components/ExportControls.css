@@ -1,11 +1,12 @@
 .export-controls {
   padding: 15px;
   background: #1f1f1f;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-  flex-shrink: 0;
-  border: 1px solid #444;
   position: relative;
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .export-controls.dragging {

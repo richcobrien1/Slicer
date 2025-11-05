@@ -17,6 +17,7 @@ function App() {
   const [user, setUser] = useState(null);
   const [showAuth, setShowAuth] = useState(false);
   const [notification, setNotification] = useState(null);
+  const [expandedPanel, setExpandedPanel] = useState('ai'); // 'ai', 'export', or 'history'
   const viewerRef = useRef(null);
   const galleryRef = useRef(null);
 
@@ -120,8 +121,8 @@ function App() {
     }
   };
 
-  const handleModelsFound = (models) => {
-    // Add search results to imported models
+  const handleModelsFound = (models, replaceExisting = false) => {
+    // Process search results
     const newModels = models.map(model => ({
       ...model,
       id: Date.now() + Math.random(),
@@ -129,18 +130,31 @@ function App() {
       isSearchResult: true
     }));
     
-    setImportedModels(prev => [...prev, ...newModels]);
-    
-    // Notify gallery
-    if (galleryRef.current) {
-      newModels.forEach(model => {
-        if (galleryRef.current.addImportedModel) {
-          galleryRef.current.addImportedModel(model);
-        }
-      });
+    if (replaceExisting) {
+      // Replace all models in the gallery
+      setImportedModels(newModels);
+      
+      // Notify gallery to replace models
+      if (galleryRef.current && galleryRef.current.replaceModels) {
+        galleryRef.current.replaceModels(newModels);
+      }
+      
+      console.log(`Replaced gallery with ${newModels.length} search results`);
+    } else {
+      // Add to existing models
+      setImportedModels(prev => [...prev, ...newModels]);
+      
+      // Notify gallery to add models
+      if (galleryRef.current) {
+        newModels.forEach(model => {
+          if (galleryRef.current.addImportedModel) {
+            galleryRef.current.addImportedModel(model);
+          }
+        });
+      }
+      
+      console.log(`Added ${newModels.length} search results to gallery`);
     }
-    
-    console.log(`Added ${newModels.length} search results to gallery`);
   };
 
   const showNotification = (message, type = 'success') => {
@@ -223,30 +237,58 @@ function App() {
         </div>
 
         <div className="right-panel">
-          <AIChat
-            onSubmitPrompt={handleCustomization}
-            onModelsFound={handleModelsFound}
-            showNotification={showNotification}
-          />
-          <ExportControls 
-            selectedModel={selectedModel}
-            onModelImport={handleModelImport}
-          />
-          <div className="customization-log">
-            <h3>📝 History</h3>
-            <div className="log-items">
-              {customizationRequests.length === 0 ? (
-                <div className="log-item">
-                  <span className="log-text" style={{color: '#666'}}>No customization requests yet...</span>
+          {/* AI Assistant Panel */}
+          <div className={`collapsible-panel ${expandedPanel === 'ai' ? 'expanded' : 'collapsed'}`}>
+            <div className="panel-header-clickable" onClick={() => setExpandedPanel('ai')}>
+              <h3>🤖 AI ASSISTANT</h3>
+              <span className="expand-indicator">{expandedPanel === 'ai' ? '▼' : '▶'}</span>
+            </div>
+            <div className="panel-content">
+              <AIChat
+                onSubmitPrompt={handleCustomization}
+                onModelsFound={handleModelsFound}
+                showNotification={showNotification}
+              />
+            </div>
+          </div>
+
+          {/* Export Controls Panel */}
+          <div className={`collapsible-panel ${expandedPanel === 'export' ? 'expanded' : 'collapsed'}`}>
+            <div className="panel-header-clickable" onClick={() => setExpandedPanel('export')}>
+              <h3>📤 EXPORT & IMPORT</h3>
+              <span className="expand-indicator">{expandedPanel === 'export' ? '▼' : '▶'}</span>
+            </div>
+            <div className="panel-content">
+              <ExportControls 
+                selectedModel={selectedModel}
+                onModelImport={handleModelImport}
+              />
+            </div>
+          </div>
+
+          {/* History Panel */}
+          <div className={`collapsible-panel ${expandedPanel === 'history' ? 'expanded' : 'collapsed'}`}>
+            <div className="panel-header-clickable" onClick={() => setExpandedPanel('history')}>
+              <h3>📝 HISTORY</h3>
+              <span className="expand-indicator">{expandedPanel === 'history' ? '▼' : '▶'}</span>
+            </div>
+            <div className="panel-content">
+              <div className="customization-log-content">
+                <div className="log-items">
+                  {customizationRequests.length === 0 ? (
+                    <div className="log-item">
+                      <span className="log-text" style={{color: '#666'}}>No customization requests yet...</span>
+                    </div>
+                  ) : (
+                    customizationRequests.slice().reverse().map((req, index) => (
+                      <div key={index} className="log-item">
+                        <span className="log-time">{req.timestamp}</span>
+                        <span className="log-text">{req.text}</span>
+                      </div>
+                    ))
+                  )}
                 </div>
-              ) : (
-                customizationRequests.slice().reverse().map((req, index) => (
-                  <div key={index} className="log-item">
-                    <span className="log-time">{req.timestamp}</span>
-                    <span className="log-text">{req.text}</span>
-                  </div>
-                ))
-              )}
+              </div>
             </div>
           </div>
         </div>
