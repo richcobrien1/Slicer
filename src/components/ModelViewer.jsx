@@ -29,7 +29,12 @@ const STLModel = ({ url, transformations }) => {
 };
 
 const Model3D = ({ modelType, fileURL, transformations }) => {
-  const url = fileURL || `/models/${modelType.toLowerCase().replace(/ /g, '_')}.stl`;
+  // Determine path based on environment - Electron needs relative paths
+  const isElectron = window.navigator.userAgent.toLowerCase().includes('electron');
+  const defaultPath = isElectron 
+    ? `models/${modelType.toLowerCase().replace(/ /g, '_')}.stl`  // Relative to index.html in Electron
+    : `/models/${modelType.toLowerCase().replace(/ /g, '_')}.stl`;
+  const url = fileURL || defaultPath;
   const geometry = useLoader(STLLoader, url);
   
   // Center the geometry

@@ -113,7 +113,7 @@ body {
   max-width: 1800px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 400px 1fr 350px;
+  grid-template-columns: 500px 1fr 350px;
   gap: 15px;
   flex: 1;
   overflow: hidden;
@@ -165,6 +165,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 15px;
+  height: 100%;
 }
 
 .middle-panel {
@@ -193,6 +194,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  height: 100%;
 }
 
 .customization-log {

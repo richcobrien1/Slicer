@@ -12,9 +12,17 @@ const ModelThumbnail = ({ modelName, fileURL }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // Detect if running in Electron
+    const isElectron = window.navigator.userAgent.toLowerCase().includes('electron');
+    
     // Use fileURL for imported models, otherwise use default path
-    const modelPath = fileURL || `/models/${modelName.toLowerCase()}.stl`;
-    console.log(`Attempting to load model: ${modelName}, path: ${modelPath}`);
+    // In Electron, use relative path; in web, use absolute path
+    const defaultPath = isElectron 
+      ? `models/${modelName.toLowerCase()}.stl`  // Relative to index.html in Electron
+      : `/models/${modelName.toLowerCase()}.stl`;
+    
+    const modelPath = fileURL || defaultPath;
+    console.log(`Attempting to load model: ${modelName}, path: ${modelPath}, isElectron: ${isElectron}`);
     
     const loader = new STLLoader();
     loader.load(

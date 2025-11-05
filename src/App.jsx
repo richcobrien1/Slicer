@@ -212,24 +212,6 @@ function App() {
               onSelectModel={handleModelSelect}
             />
           </div>
-          
-          <div className="customization-log">
-            <h3>📝 History</h3>
-            <div className="log-items">
-              {customizationRequests.length === 0 ? (
-                <div className="log-item">
-                  <span className="log-text" style={{color: '#666'}}>No customization requests yet...</span>
-                </div>
-              ) : (
-                customizationRequests.slice().reverse().map((req, index) => (
-                  <div key={index} className="log-item">
-                    <span className="log-time">{req.timestamp}</span>
-                    <span className="log-text">{req.text}</span>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
         </div>
 
         <div className="middle-panel">
@@ -250,6 +232,23 @@ function App() {
             selectedModel={selectedModel}
             onModelImport={handleModelImport}
           />
+          <div className="customization-log">
+            <h3>📝 History</h3>
+            <div className="log-items">
+              {customizationRequests.length === 0 ? (
+                <div className="log-item">
+                  <span className="log-text" style={{color: '#666'}}>No customization requests yet...</span>
+                </div>
+              ) : (
+                customizationRequests.slice().reverse().map((req, index) => (
+                  <div key={index} className="log-item">
+                    <span className="log-time">{req.timestamp}</span>
+                    <span className="log-text">{req.text}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
